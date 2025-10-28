@@ -37,6 +37,35 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+## React DevTools Profiler 사용법
+
+"Profiling not supported" 메시지는 프로덕션 번들(최적화 빌드)을 열었을 때 발생합니다. Profiler는 아래 중 하나가 필요합니다.
+
+- 개발 서버(Development build): 권장. 아래처럼 실행하면 Profiler 탭이 활성화됩니다.
+
+```bash
+npm run dev
+```
+
+- 프로덕션 프로파일링 빌드: 진단용으로 프로덕션 번들을 프로파일링 전용 빌드로 생성할 수 있습니다. 이 레포는 Vite에서 `VITE_REACT_PROFILE=true`를 사용하면 React의 profiling 번들을 사용하도록 설정되어 있습니다.
+
+```bash
+# 프로파일링 빌드 생성
+VITE_REACT_PROFILE=true npm run build
+
+# 로컬에서 확인
+npm run preview
+```
+
+Docker 이미지도 프로파일링 빌드로 만들고 싶다면, 빌드 단계에서 환경변수를 넣어 빌드하세요(간단 방법):
+
+```dockerfile
+# Dockerfile 의 빌드 단계에서
+RUN VITE_REACT_PROFILE=true npm run build
+```
+
+참고: 프로파일링 빌드는 성능/사이즈 상의 페널티가 있으니, 문제 진단 시에만 사용하고 일반 배포에는 개발 서버 또는 일반 프로덕션 빌드를 사용하세요.
 # Frontend (React + Vite + TypeScript)
 
 This app ships three role-specific sections besides the common Home page:
