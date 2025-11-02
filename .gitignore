@@ -1,15 +1,88 @@
-### react ###
-.DS_*
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+
+### OS / Editor cruft ###
+.DS_Store
+Thumbs.db
+*~
+
+# Vim / JetBrains caches (프로젝트 루트 외에 우발 생성물)
+*.swp
+*.swo
+
+### Logs ###
+logs/
 *.log
-logs
-**/*.backup.*
-**/*.back.*
+spring.log
+hs_err_pid*.log        # JVM crash log
 
-node_modules
-bower_components
+### Databases (H2 등) ###
+*.mv.db
+*.h2.db
+*.trace.db
 
-*.sublime*
+### Build reports / coverage ###
+build/reports/
+build/test-results/
+build/jacoco/
+jacoco.exec
 
-psd
-thumb
-sketch
+### Generated sources ###
+src/main/generated/     # Querydsl 등 annotation processor 산출물
+# (build/ 아래는 이미 무시 중)
+
+### Secrets / Local config ###
+# 실제 비밀값이 들어가는 로컬 설정은 ignore
+src/main/resources/application-local.yml
+src/main/resources/application-*.yml
+!src/main/resources/application.yml                 # 기본 템플릿은 유지(비밀 제거 필수)
+!src/main/resources/application-*.example.yml       # 샘플은 허용
+.env
+.env.*
+**/*.keystore
+**/*.jks
+**/*.p12
+**/*.pem
+**/*.crt
+**/*.key
+
+### Uploads / runtime files (있다면) ###
+uploads/
+tmp/
+temp/
