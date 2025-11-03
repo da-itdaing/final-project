@@ -12,6 +12,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * Spring Security 설정
@@ -27,6 +32,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // CORS 활성화
+                .cors(cors -> {})
+
                 // CSRF 비활성화 (JWT 사용)
                 .csrf(AbstractHttpConfigurer::disable)
 
@@ -43,6 +51,8 @@ public class SecurityConfig {
 
                 // 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        //  프리플라이트 허용
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 공개 API
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/master/**").permitAll()
@@ -66,6 +76,52 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * CORS 설정
+     * - 허용 오리진: localhost:5173, localhost:8081
+     * - 허용 메서드: GET, POST, PUT, PATCH, DELETE, OPTIONS
+     * - 허용 헤더: 모두 허용
+     * - 노출 헤더: Authorization
+     * - Credentials: 허용
+     * - 적용 경로: /api/**
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // 허용할 오리진 설정
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "http://localhost:8081"
+        ));
+
+        // 허용할 HTTP 메서드 설정
+        config.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"
+        ));
+
+        // 허용할 헤더 설정 (모든 헤더 허용)
+        config.setAllowedHeaders(List.of("*"));
+
+        // 응답 시 노출할 헤더 설정
+        config.setExposedHeaders(List.of("Authorization"));
+
+        // 쿠키 및 인증 정보 허용
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L); //프리플라이트 캐시
+
+        // CORS 설정을 URL 패턴에 등록
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/api/**", config);
+
+        return source;
     }
 }
 
