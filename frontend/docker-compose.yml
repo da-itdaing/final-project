@@ -1,0 +1,14 @@
+services:
+  frontend:
+    build:
+      context: .
+    image: itdaing-frontend:latest
+    container_name: itdaing-frontend
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+
+networks:
+  default:
+    name: itdaing-net
+    driver: bridge

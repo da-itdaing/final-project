@@ -8,9 +8,16 @@ WORKDIR /app
 ARG VITE_REACT_PROFILE=false
 ENV VITE_REACT_PROFILE=${VITE_REACT_PROFILE}
 
+# Build-time API flags used by Vite build
+ARG VITE_USE_REAL_API=false
+ARG VITE_API_BASE_URL=
+ENV VITE_USE_REAL_API=${VITE_USE_REAL_API}
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
 # Install deps first (better caching)
 COPY package*.json ./
-RUN npm ci
+# Use npm ci if lockfile exists; fallback to npm install
+RUN if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
 
 # Copy source and build
 COPY . .

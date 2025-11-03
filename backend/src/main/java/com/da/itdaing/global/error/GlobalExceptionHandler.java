@@ -1,0 +1,135 @@
+package com.da.itdaing.global.error;
+
+import com.da.itdaing.domain.user.exception.AuthException;
+import com.da.itdaing.global.error.exception.DuplicateResourceException;
+import com.da.itdaing.global.error.exception.EntityNotFoundException;
+import com.da.itdaing.global.web.ApiResponse;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.stream.Collectors;
+
+/**
+ * 글로벌 예외 처리 핸들러
+ */
+@Slf4j
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    /**
+     * Bean Validation 검증 실패 (RequestBody)
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        log.warn("MethodArgumentNotValidException: {}", e.getMessage());
+
+        ApiError apiError = ApiError.of(ErrorCode.INVALID_INPUT_VALUE, e.getBindingResult());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(apiError));
+    }
+
+    /**
+     * Bean Validation 검증 실패 (ModelAttribute)
+     */
+    @ExceptionHandler(BindException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleBindException(BindException e) {
+        log.warn("BindException: {}", e.getMessage());
+
+        ApiError apiError = ApiError.of(ErrorCode.INVALID_INPUT_VALUE, e.getBindingResult());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(apiError));
+    }
+
+    /**
+     * Bean Validation 검증 실패 (PathVariable, RequestParam)
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException e) {
+        log.warn("ConstraintViolationException: {}", e.getMessage());
+
+        String errors = e.getConstraintViolations().stream()
+                .map(ConstraintViolation::getMessage)
+                .collect(Collectors.joining(", "));
+
+        ApiError apiError = ApiError.of(ErrorCode.INVALID_INPUT_VALUE, errors);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(apiError));
+    }
+
+    /**
+     * 엔티티를 찾을 수 없는 경우
+     */
+    @ExceptionHandler(EntityNotFoundException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleEntityNotFoundException(EntityNotFoundException e) {
+        log.warn("EntityNotFoundException: {}", e.getMessage());
+
+        ApiError apiError = ApiError.of(e.getErrorCode());
+        return ResponseEntity
+                .status(e.getErrorCode().getStatus())
+                .body(ApiResponse.error(apiError));
+    }
+
+    /**
+     * 리소스 중복
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleDuplicateResourceException(DuplicateResourceException e) {
+        log.warn("DuplicateResourceException: {}", e.getMessage());
+
+        ApiError apiError = ApiError.of(e.getErrorCode());
+        return ResponseEntity
+                .status(e.getErrorCode().getStatus())
+                .body(ApiResponse.error(apiError));
+    }
+
+    /**
+     * 인증 예외
+     */
+    @ExceptionHandler(AuthException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleAuthException(AuthException e) {
+        log.warn("AuthException: {}", e.getMessage());
+
+        ApiError apiError = ApiError.of(e.getErrorCode());
+        return ResponseEntity
+                .status(e.getErrorCode().getStatus())
+                .body(ApiResponse.error(apiError));
+    }
+
+    /**
+     * 데이터 무결성 위반 (DB 제약조건 위반 등)
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolationException(DataIntegrityViolationException e) {
+        log.warn("DataIntegrityViolationException: {}", e.getMessage());
+
+        // 중복 키 등 DB 제약조건 위반은 409 Conflict로 처리
+        ApiError apiError = ApiError.of(ErrorCode.DUPLICATE_EMAIL);
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(apiError));
+    }
+
+    /**
+     * 그 외 모든 예외
+     */
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        log.error("Unexpected exception occurred", e);
+
+        ApiError apiError = ApiError.of(ErrorCode.INTERNAL_SERVER_ERROR);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(apiError));
+    }
+}

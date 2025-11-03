@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    image: itdaing-backend:latest
+    container_name: itdaing-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+    ports:
+      - "8080:8080"
+    networks:
+      - itdaing-net
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Build-time flags for Vite to call real API through Nginx proxy
+        VITE_USE_REAL_API: "true"
+        # Leave BASE_URL empty because app paths already start with /api
+        VITE_API_BASE_URL: ""
+    image: itdaing-frontend:latest
+    container_name: itdaing-frontend
+    ports:
+      - "8081:80"
+    depends_on:
+      - backend
+    networks:
+      - itdaing-net
+    restart: unless-stopped
+
+networks:
+  itdaing-net:
+    driver: bridge

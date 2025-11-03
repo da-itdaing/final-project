@@ -1,3 +1,19 @@
+# Node dependencies and build outputs
+node_modules
+dist
+
+# Vite cache
+.vite
+
+# IDE/editor files
+.idea
+.vscode
+
+# Git
+.git
+
+# OS
+.DS_Store
 node_modules
 .dist
 /dist

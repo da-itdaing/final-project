@@ -13,3 +13,18 @@ bower_components
 psd
 thumb
 sketch
+
+### Java/Gradle build outputs ###
+build/
+.gradle/
+out/
+
+### IDE ###
+.idea/
+.vscode/
+
+### OS ###
+.DS_Store
+
+### Docker ###
+*.log
