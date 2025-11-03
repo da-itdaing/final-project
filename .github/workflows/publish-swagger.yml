@@ -13,6 +13,8 @@ jobs:
         env:
             SPRING_PROFILES_ACTIVE: openapi
             JWT_SECRET: ci-test-secret-please-replace
+            JWT_ISSUER: itdaing-server
+            JWT_ACCESS_EXP_MS: 86400000
 
         steps:
             - name: Checkout
