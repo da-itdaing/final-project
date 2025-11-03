@@ -2,6 +2,7 @@ plugins {
     id("java")
     id("org.springframework.boot") version "3.5.6"
     id("io.spring.dependency-management") version "1.1.7"
+    id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
 }
 
 group = "com.da.itdaing"
@@ -24,6 +25,18 @@ repositories {
     mavenCentral()
 }
 
+openApi {
+    // CI가 앱을 띄운 뒤 /v3/api-docs.yaml을 가져와서 파일로 저장
+    outputDir.set(file("$buildDir/openapi"))
+    outputFileName.set("openapi.yaml")
+    waitTimeInSeconds.set(90)
+
+    // 'openapi' 프로파일로 부팅 (H2 사용/보안완화용)
+    customBootRun {
+        args.set(listOf("--spring.profiles.active=openapi"))
+    }
+}
+
 dependencies {
     // --- Spring Boot starters
     implementation("org.springframework.boot:spring-boot-starter-web")          // REST
@@ -33,7 +46,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")     // /actuator
 
     // --- OpenAPI (Swagger UI)
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
     // --- JWT (jjwt 0.12.x: api + impl + jackson)
     implementation("io.jsonwebtoken:jjwt-api:0.12.5")

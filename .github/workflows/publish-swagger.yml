@@ -1,8 +1,9 @@
 name: Publish Swagger to GitHub Pages
-
+permissions:
+    contents: write
 on:
     push:
-        branches: [ backend ]   # 필요시 main 등으로 변경
+        branches: [ backend ]   # 필요시 main 등으로 바꿔도 됨
     workflow_dispatch:
 
 jobs:
@@ -11,7 +12,6 @@ jobs:
 
         env:
             SPRING_PROFILES_ACTIVE: openapi
-            # 앱이 부팅될 때 필요한 환경변수들(예: JWT_SECRET 등) 미리 주입
             JWT_SECRET: ci-test-secret-please-replace
 
         steps:
@@ -30,7 +30,7 @@ jobs:
             - name: Build (compile only)
               run: ./gradlew --no-daemon clean classes
 
-            # springdoc Gradle 플러그인이 앱을 띄우고 /v3/api-docs.yaml을 수집하여 파일 생성
+            # springdoc 플러그인이 앱을 잠깐 띄워서 /v3/api-docs.yaml을 파일로 생성
             - name: Generate OpenAPI spec
               run: ./gradlew --no-daemon generateOpenApiDocs
 
@@ -38,15 +38,13 @@ jobs:
               run: |
                   mkdir -p public
                   cp build/openapi/openapi.yaml public/
-                  # GitHub Pages에서 Jekyll 간섭 방지
-                  touch public/.nojekyll
                   cat > public/index.html <<'EOF'
                   <!doctype html>
                   <html>
                   <head>
                     <meta charset="utf-8"/>
-                    <meta name="viewport" content="width=device-width, initial-scale=1"/>
                     <title>ItDaIng API Docs</title>
+                    <meta name="viewport" content="width=device-width,initial-scale=1"/>
                     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
                   </head>
                   <body>
@@ -56,8 +54,7 @@ jobs:
                       window.onload = () => {
                         window.ui = SwaggerUIBundle({
                           url: './openapi.yaml',
-                          dom_id: '#swagger-ui',
-                          presets: [SwaggerUIBundle.presets.apis],
+                          dom_id: '#swagger-ui'
                         });
                       };
                     </script>
