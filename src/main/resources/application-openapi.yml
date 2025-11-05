@@ -26,3 +26,9 @@ springdoc:
 logging:
     level:
         org.springframework: WARN
+
+jwt:
+    secret: ${JWT_SECRET:dev-openapi-secret}
+    issuer: ${JWT_ISSUER:itdaing-server}
+    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:PT15M}
+    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:P7D}

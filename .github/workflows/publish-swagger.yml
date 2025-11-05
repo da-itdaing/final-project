@@ -12,9 +12,11 @@ jobs:
 
         env:
             SPRING_PROFILES_ACTIVE: openapi
+            SERVER_PORT: 8080
             JWT_SECRET: ci-test-secret-please-replace
             JWT_ISSUER: itdaing-server
-            JWT_ACCESS_EXP_MS: 86400000
+            JWT_ACCESS_TOKEN_EXPIRATION: PT15M
+            JWT_REFRESH_TOKEN_EXPIRATION: P7D
 
         steps:
             - name: Checkout

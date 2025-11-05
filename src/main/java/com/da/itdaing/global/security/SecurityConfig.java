@@ -1,6 +1,7 @@
 package com.da.itdaing.global.security;
 
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -50,48 +51,51 @@ class CommonSecurityBeans {
 @Profile("!openapi")
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
-    private final JwtAuthenticationHandler jwtAuthenticationHandler;
+    /** JwtTokenProvider를 여기서만 생성(@Component 제거 가정) */
+    @Bean
+    public JwtTokenProvider jwtTokenProvider(
+        @Value("${jwt.secret}") String secret,
+        @Value("${jwt.issuer:itdaing-server}") String issuer,
+        @Value("${jwt.access-token-expiration:900000}") long accessTokenExpMs,        // 15분 기본값
+        @Value("${jwt.refresh-token-expiration:1209600000}") long refreshTokenExpMs   // 14일 기본값
+    ) {
+        return new JwtTokenProvider(secret, issuer, accessTokenExpMs, refreshTokenExpMs);
+    }
+
+    /** 핸들러는 ObjectMapper를 필요로 함 */
+    @Bean
+    public JwtAuthenticationHandler jwtAuthenticationHandler(ObjectMapper objectMapper) {
+        return new JwtAuthenticationHandler(objectMapper);
+    }
+
+    /** 필터는 JwtTokenProvider만 필요함 */
+    @Bean
+    public JwtAuthFilter jwtAuthFilter(JwtTokenProvider jwtTokenProvider) {
+        return new JwtAuthFilter(jwtTokenProvider);
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                                                   JwtAuthFilter jwtAuthFilter,
+                                                   JwtAuthenticationHandler jwtAuthenticationHandler) throws Exception {
         http
-            // CORS
             .cors(cors -> {})
-
-            // JWT 사용: CSRF 비활성화 + 세션 Stateless
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-            // 인증/인가 예외 처리
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint(jwtAuthenticationHandler)
                 .accessDeniedHandler(jwtAuthenticationHandler)
             )
-
-            // 접근 제어
             .authorizeHttpRequests(auth -> auth
-                // 프리플라이트 허용
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                // 공개 API
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/master/**").permitAll()
-
-                // Swagger/OpenAPI
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-
-                // Actuator 헬스체크
                 .requestMatchers("/actuator/health").permitAll()
-
-                // 그 외 인증 필요
                 .anyRequest().authenticated()
             )
-
-            // JWT 필터
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
