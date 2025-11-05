@@ -23,7 +23,6 @@ import java.util.List;
  * Authorization 헤더에서 JWT 토큰을 추출하고 검증하여 SecurityContext에 인증 정보 설정
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
