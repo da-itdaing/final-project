@@ -19,6 +19,8 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      HAS_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY != '' }}
 
     steps:
       - name: Checkout
@@ -69,7 +71,7 @@ jobs:
 
       # Option A: Use a deploy key secret if org policy restricts GITHUB_TOKEN write
       - name: Deploy to GitHub Pages (deploy key)
-        if: ${{ secrets.GH_PAGES_DEPLOY_KEY != '' }}
+        if: ${{ env.HAS_DEPLOY_KEY == 'true' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
@@ -78,7 +80,7 @@ jobs:
 
       # Option B: Fall back to GITHUB_TOKEN if allowed
       - name: Deploy to GitHub Pages (GITHUB_TOKEN)
-        if: ${{ secrets.GH_PAGES_DEPLOY_KEY == '' }}
+        if: ${{ env.HAS_DEPLOY_KEY != 'true' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
