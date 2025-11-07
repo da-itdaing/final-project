@@ -31,7 +31,8 @@ logging:
         org.springframework: WARN
 
 jwt:
-    secret: ${JWT_SECRET:dev-openapi-secret}
+    # HS256 최소 256비트(32바이트) 이상 필요
+    secret: ${JWT_SECRET:openapi-secret-0123456789ABCDEF0123456789ABCDEF}
     issuer: ${JWT_ISSUER:itdaing-server}
-    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:PT15M}
-    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:P7D}
+    access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+    refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:1209600000}

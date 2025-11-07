@@ -83,6 +83,10 @@ src/main/resources/application-*.yml
 **/*.crt
 **/*.key
 
+# Local deploy keys (do not commit)
+gh-pages
+gh-pages.pub
+
 ### Uploads / runtime files (있다면) ###
 uploads/
 tmp/
