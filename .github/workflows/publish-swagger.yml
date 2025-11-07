@@ -13,10 +13,11 @@ jobs:
         env:
             SPRING_PROFILES_ACTIVE: openapi
             SERVER_PORT: 8080
-            JWT_SECRET: ci-test-secret-please-replace
+      JWT_SECRET: ci-test-secret-please-replace-0123456789-abcdefghijklmnopqrstuvwxyz-long-key
             JWT_ISSUER: itdaing-server
-            JWT_ACCESS_TOKEN_EXPIRATION: PT15M
-            JWT_REFRESH_TOKEN_EXPIRATION: P7D
+      # JwtTokenProvider expects millis (long). 15m and 7d respectively.
+      JWT_ACCESS_TOKEN_EXPIRATION: "900000"
+      JWT_REFRESH_TOKEN_EXPIRATION: "604800000"
 
         steps:
             - name: Checkout
@@ -73,7 +74,18 @@ jobs:
                   </html>
                   EOF
 
-            - name: Deploy to GitHub Pages (gh-pages)
+            # If a deploy key is configured, prefer it (works even when org restricts GITHUB_TOKEN writes)
+            - name: Deploy to GitHub Pages (deploy key)
+              if: ${{ secrets.GH_PAGES_DEPLOY_KEY != '' }}
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  deploy_key: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
+                  publish_dir: ./public
+                  publish_branch: gh-pages
+
+            # Fallback to GITHUB_TOKEN when it has contents: write
+            - name: Deploy to GitHub Pages (token)
+              if: ${{ secrets.GH_PAGES_DEPLOY_KEY == '' }}
               uses: peaceiris/actions-gh-pages@v3
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
