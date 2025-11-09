@@ -151,7 +151,7 @@
 | Reco | 3 | 3 | 3 |
 | Metric | 4 | 4 | 4 |
 | Audit | 1 | 1 | 1 |
-| **합계** | **31** | **31** | **31** |
+| 합계 | 31 | 31 | 31 |
 
 **Enums:** 6개 (CategoryType, UserRole, ApprovalStatus, AnnouncementAudience, EventAction, DecisionType)
 
@@ -252,7 +252,7 @@ class RegionRepositoryTest {
         Region saved = regionRepository.save(region);
         Region found = regionRepository.findById(saved.getId()).orElseThrow();
         
-        // then
+    // then
         assertThat(found.getName()).isEqualTo("남구");
         assertThat(found.getCreatedAt()).isNotNull();
     }
