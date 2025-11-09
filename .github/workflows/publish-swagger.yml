@@ -1,13 +1,18 @@
 name: Publish Swagger to GitHub Pages (manual)
 permissions:
-    contents: write
+  contents: write
 on:
   # 자동 실행을 비활성화하고 수동으로만 실행하도록 변경
   workflow_dispatch:
 
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: true
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       HAS_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY != '' }}
       # App runtime env for generating OpenAPI
@@ -23,7 +28,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
-                  lfs: true
+                lfs: true
+
+            # Validate Gradle Wrapper for supply-chain safety
+            - name: Validate Gradle Wrapper
+              uses: gradle/actions/wrapper-validation@v3
 
             - name: Inspect wrapper files
               run: |
@@ -36,43 +45,49 @@ jobs:
                   distribution: temurin
                   java-version: '21'
 
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v3
+
             - name: Grant execute permission for Gradle
               run: chmod +x ./gradlew
 
-            - name: Build (compile only)
-              run: ./gradlew --no-daemon clean classes
-
             # springdoc 플러그인이 앱을 잠깐 띄워서 /v3/api-docs.yaml을 파일로 생성
             - name: Generate OpenAPI spec
-              run: ./gradlew --no-daemon generateOpenApiDocs
+              run: ./gradlew --no-daemon clean generateOpenApiDocs
 
             - name: Prepare static Swagger UI
               run: |
-                  mkdir -p public
-                  cp build/openapi/openapi.yaml public/
-                  cat > public/index.html <<'EOF'
-                  <!doctype html>
-                  <html>
-                  <head>
-                    <meta charset="utf-8"/>
-                    <title>ItDaIng API Docs</title>
-                    <meta name="viewport" content="width=device-width,initial-scale=1"/>
-                    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
-                  </head>
-                  <body>
-                    <div id="swagger-ui"></div>
-                    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-                    <script>
-                      window.onload = () => {
-                        window.ui = SwaggerUIBundle({
-                          url: './openapi.yaml',
-                          dom_id: '#swagger-ui'
-                        });
-                      };
-                    </script>
-                  </body>
-                  </html>
-                  EOF
+                mkdir -p public
+                cp build/openapi/openapi.yaml public/openapi.yaml
+                cat > public/index.html <<'EOF'
+                <!doctype html>
+                <html>
+                <head>
+                  <meta charset="utf-8"/>
+                  <title>ItDaIng API Docs</title>
+                  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+                  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+                </head>
+                <body>
+                  <div id="swagger-ui"></div>
+                  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+                  <script>
+                    window.onload = () => {
+                      window.ui = SwaggerUIBundle({
+                        url: './openapi.yaml',
+                        dom_id: '#swagger-ui'
+                      });
+                    };
+                  </script>
+                </body>
+                </html>
+                EOF
+
+            - name: Upload OpenAPI artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: openapi.yaml
+                path: public/openapi.yaml
 
             # If a deploy key is configured, prefer it (works even when org restricts GITHUB_TOKEN writes)
             - name: Deploy to GitHub Pages (deploy key)
