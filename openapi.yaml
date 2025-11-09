@@ -145,6 +145,27 @@
           "required": true
         },
         "responses": {
+          "201": {
+            "description": "회원가입 성공",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "data": {
+                    "userId": 12,
+                    "email": "seller1@example.com",
+                    "role": "SELLER",
+                    "profile": {
+                      "activityRegion": "광주/남구",
+                      "snsUrl": "https://instagram.com/popup_seller",
+                      "profileImageUrl": "https://cdn.example.com/profiles/popup_seller.png",
+                      "introduction": "팝업 운영 3년차, 굿즈 위주"
+                    }
+                  }
+                }
+              }
+            }
+          },
           "400": {
             "description": "입력값 검증 실패",
             "content": {
@@ -170,27 +191,6 @@
                     "status": 409,
                     "code": "E202",
                     "message": "이미 사용 중인 이메일입니다"
-                  }
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "회원가입 성공",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "data": {
-                    "userId": 12,
-                    "email": "seller1@example.com",
-                    "role": "SELLER",
-                    "profile": {
-                      "activityRegion": "광주/남구",
-                      "snsUrl": "https://instagram.com/popup_seller",
-                      "profileImageUrl": "https://cdn.example.com/profiles/popup_seller.png",
-                      "introduction": "팝업 운영 3년차, 굿즈 위주"
-                    }
                   }
                 }
               }
@@ -355,9 +355,6 @@
           }
         },
         "responses": {
-          "204": {
-            "description": "로그아웃 성공 (본문 없음)"
-          },
           "401": {
             "description": "인증 실패 - Authorization 헤더 없음/형식 오류/토큰 무효",
             "content": {
@@ -372,6 +369,9 @@
                 }
               }
             }
+          },
+          "204": {
+            "description": "로그아웃 성공 (본문 없음)"
           }
         },
         "security": [
@@ -400,21 +400,6 @@
           "required": true
         },
         "responses": {
-          "401": {
-            "description": "인증 실패",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 401,
-                    "code": "AUTH-401",
-                    "message": "이메일 또는 비밀번호가 올바르지 않습니다"
-                  }
-                }
-              }
-            }
-          },
           "200": {
             "description": "로그인 성공",
             "content": {
@@ -432,6 +417,21 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 401,
+                    "code": "AUTH-401",
+                    "message": "이메일 또는 비밀번호가 올바르지 않습니다"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -445,21 +445,6 @@
         "description": "인증된 사용자의 프로필 정보를 조회합니다.\n\n이 API는 JWT 토큰 인증이 필요합니다.\nAuthorization 헤더에 \"Bearer {token}\" 형식으로 토큰을 포함해야 합니다.\n\n응답의 role 필드는 다음 값 중 하나입니다:\n- CONSUMER: 일반 소비자\n- SELLER: 팝업스토어 판매자\n- ADMIN: 시스템 관리자\n",
         "operationId": "getMyProfile_1",
         "responses": {
-          "401": {
-            "description": "인증 실패 - 토큰이 없거나 유효하지 않음",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 401,
-                    "code": "AUTH-401",
-                    "message": "인증이 필요합니다"
-                  }
-                }
-              }
-            }
-          },
           "200": {
             "description": "조회 성공",
             "content": {
@@ -490,6 +475,21 @@
                         "role": "SELLER"
                       }
                     }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패 - 토큰이 없거나 유효하지 않음",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 401,
+                    "code": "AUTH-401",
+                    "message": "인증이 필요합니다"
                   }
                 }
               }
