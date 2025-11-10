@@ -21,7 +21,7 @@ jobs:
           cache: gradle
       - name: Generate OpenAPI (springdoc plugin)
         run: |
-          ./gradlew openApi -q || ./gradlew openApi
+          ./gradlew generateOpenApiDocs -q || ./gradlew generateOpenApiDocs
           ls -R build/openapi || true
       - name: Copy generated spec
         run: |
