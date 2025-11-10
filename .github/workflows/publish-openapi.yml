@@ -3,7 +3,8 @@ name: Publish OpenAPI to GitHub Pages
 on:
   workflow_dispatch:
   push:
-    branches: [ backend, main, master ]
+    # dev/integration 포함해 기능 개발 브랜치에서도 자동 배포
+    branches: [ dev/integration, main, master ]
     paths:
       - 'src/**'
       - 'docs/**'
@@ -11,6 +12,7 @@ on:
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
       - '.github/workflows/publish-openapi.yml'
+      - 'src/main/resources/application-openapi.yml'
 
 # Ensure the GITHUB_TOKEN can push to gh-pages
 permissions:

@@ -1,9 +1,18 @@
-name: Publish Swagger to GitHub Pages (manual)
+name: Publish Swagger to GitHub Pages
 permissions:
-    contents: write
+  contents: write
 on:
-  # 자동 실행을 비활성화하고 수동으로만 실행하도록 변경
   workflow_dispatch:
+  push:
+    branches: [ dev/integration, main, master ]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - 'README.md'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - '.github/workflows/publish-swagger.yml'
+      - 'src/main/resources/application-openapi.yml'
 
 jobs:
   build-and-publish:
@@ -58,19 +67,22 @@ jobs:
                   <html>
                   <head>
                     <meta charset="utf-8"/>
-                    <title>ItDaIng API Docs</title>
+                    <title>DA-ITDAING API Docs</title>
                     <meta name="viewport" content="width=device-width,initial-scale=1"/>
                     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
+                    <style>body{margin:0} .topbar{display:none}</style>
                   </head>
                   <body>
                     <div id="swagger-ui"></div>
                     <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
                     <script>
                       window.onload = () => {
-                        window.ui = SwaggerUIBundle({
-                          url: './openapi.yaml',
-                          dom_id: '#swagger-ui'
-                        });
+                        fetch('./openapi.yaml')
+                          .then(r => r.json())
+                          .then(spec => {
+                            document.title = `${(spec.info?.title||'API Docs')} - ${(spec.info?.version||'v')}`;
+                            window.ui = SwaggerUIBundle({ spec, dom_id: '#swagger-ui' });
+                          });
                       };
                     </script>
                   </body>
