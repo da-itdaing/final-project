@@ -24,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -55,10 +56,13 @@ public class DevDataSeed implements CommandLineRunner {
     // Seller repos
     private final SellerProfileRepository sellerProfileRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) {
         log.info("===== [DevDataSeed] START =====");
         seedMaster();
+        seedAdmin();
         seedUsersAndPrefs();
         seedSellersAndProfile();
         log.info("===== [DevDataSeed] DONE =====");
@@ -104,6 +108,28 @@ public class DevDataSeed implements CommandLineRunner {
     }
 
     /* =========================
+   Admin seed
+   ========================= */
+    private void seedAdmin() {
+        Users admin = userRepository.findByLoginId("admin").orElse(null);
+        if (admin == null) {
+            admin = userRepository.save(
+                Users.builder()
+                    .loginId("admin")
+                    .password(passwordEncoder.encode("admin!1234")) // ✅ 해시 저장
+                    .name("관리자")
+                    .nickname("슈퍼관리자")
+                    .email("admin@example.com")
+                    .role(UserRole.ADMIN)
+                    .build()
+            );
+            log.info("Seeded ADMIN: id={}, loginId={}", admin.getId(), admin.getLoginId());
+        }else {
+            log.info("ADMIN already exists. Leave password as-is (no change).");
+        }
+    }
+
+    /* =========================
        Users & Preferences seed
        ========================= */
     private void seedUsersAndPrefs() {
@@ -113,7 +139,7 @@ public class DevDataSeed implements CommandLineRunner {
             consumer = userRepository.save(
                 Users.builder()
                     .loginId("consumer1")
-                    .password("pass!1234") // 로컬용 더미
+                    .password(passwordEncoder.encode("pass!1234"))
                     .name("김소비")
                     .nickname("소비왕")
                     .email("consumer1@example.com")
@@ -171,7 +197,7 @@ public class DevDataSeed implements CommandLineRunner {
             seller1 = userRepository.save(
                 Users.builder()
                     .loginId("seller1")
-                    .password("pass!1234")
+                    .password(passwordEncoder.encode("pass!1234"))
                     .name("박판매")
                     .nickname("팝업왕")
                     .email("seller1@example.com")
@@ -201,7 +227,7 @@ public class DevDataSeed implements CommandLineRunner {
             seller2 = userRepository.save(
                 Users.builder()
                     .loginId("seller2")
-                    .password("pass!1234")
+                    .password(passwordEncoder.encode("pass!1234"))
                     .name("이판매")
                     .nickname("굿즈장인")
                     .email("seller2@example.com")
@@ -210,5 +236,11 @@ public class DevDataSeed implements CommandLineRunner {
             );
             log.info("Seeded SELLER user (no profile): id={}, loginId={}", seller2.getId(), seller2.getLoginId());
         }
+    }
+
+    private boolean looksEncoded(String pw) {
+        if (pw == null) return false;
+        // BCrypt 해시 시작 패턴($2a, $2b, $2y)
+        return pw.startsWith("$2a$") || pw.startsWith("$2b$") || pw.startsWith("$2y$");
     }
 }

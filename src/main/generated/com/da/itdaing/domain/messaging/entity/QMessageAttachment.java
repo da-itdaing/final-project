@@ -22,6 +22,8 @@ public class QMessageAttachment extends EntityPathBase<MessageAttachment> {
 
     public static final QMessageAttachment messageAttachment = new QMessageAttachment("messageAttachment");
 
+    public final StringPath fileKey = createString("fileKey");
+
     public final StringPath fileUrl = createString("fileUrl");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
@@ -29,6 +31,10 @@ public class QMessageAttachment extends EntityPathBase<MessageAttachment> {
     public final QMessage message;
 
     public final StringPath mimeType = createString("mimeType");
+
+    public final StringPath originalName = createString("originalName");
+
+    public final NumberPath<Long> sizeBytes = createNumber("sizeBytes", Long.class);
 
     public QMessageAttachment(String variable) {
         this(MessageAttachment.class, forVariable(variable), INITS);

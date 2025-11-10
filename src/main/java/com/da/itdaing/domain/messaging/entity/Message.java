@@ -13,24 +13,25 @@ import java.time.LocalDateTime;
  * 메시지 (1:1 메시지)
  */
 @Entity
-@Table(
-    name = "message",
-    indexes = @Index(name = "idx_msg_inbox", columnList = "receiver_id, read_at")
-)
+@Table(name = "message",
+    indexes = {
+        @Index(name = "idx_msg_inbox", columnList = "receiver_id, read_at"),
+        @Index(name = "idx_msg_thread", columnList = "thread_id, sent_at DESC")
+    })
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Message {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sender_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "thread_id", nullable = false)
+    private MessageThread thread;
+
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "sender_id", nullable = false)
     private Users sender;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "receiver_id", nullable = false)
     private Users receiver;
 
     @Column(name = "title", length = 200, nullable = false)
@@ -39,20 +40,27 @@ public class Message {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "sent_at", nullable = false)
-    private LocalDateTime sentAt = LocalDateTime.now();
+    @Column(name = "sent_at", nullable = false) private LocalDateTime sentAt = LocalDateTime.now();
+    @Column(name = "read_at") private LocalDateTime readAt;
 
-    @Column(name = "read_at")
-    private LocalDateTime readAt;
+    @Column(name = "sender_deleted_at")  private LocalDateTime senderDeletedAt;
+    @Column(name = "receiver_deleted_at") private LocalDateTime receiverDeletedAt;
 
     @Builder
-    public Message(Users sender, Users receiver, String title, String content, LocalDateTime sentAt, LocalDateTime readAt) {
+    public Message(MessageThread thread, Users sender, Users receiver,
+                   String title, String content, LocalDateTime sentAt) {
+        this.thread = thread;
         this.sender = sender;
         this.receiver = receiver;
         this.title = title;
         this.content = content;
         this.sentAt = sentAt != null ? sentAt : LocalDateTime.now();
-        this.readAt = readAt;
+    }
+
+    public void markRead() { this.readAt = LocalDateTime.now(); }
+    public void softDeleteBy(Users who) {
+        if (who.getId().equals(sender.getId())) this.senderDeletedAt = LocalDateTime.now();
+        if (who.getId().equals(receiver.getId())) this.receiverDeletedAt = LocalDateTime.now();
     }
 }
 
