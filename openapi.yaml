@@ -71,23 +71,30 @@
         }
       }
     },
-    "/api/auth/token/refresh": {
+    "/api/uploads/images": {
       "post": {
         "tags": [
-          "Auth"
+          "Upload"
         ],
-        "summary": "액세스 토큰 재발급 (Refresh Token)",
-        "description": "만료되었거나 곧 만료될 Access Token을 **Refresh Token**으로 갱신합니다.\n- 본 API는 Authorization 헤더가 필요없고, **refreshToken**을 본문으로 받습니다.\n- 서버가 새 Access/Refresh 토큰 쌍을 반환합니다.\n",
-        "operationId": "refresh",
+        "summary": "이미지 업로드 (복수)",
+        "operationId": "uploadImages",
         "requestBody": {
-          "description": "리프레시 토큰을 담아 요청합니다.",
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/TokenRefreshRequest"
-              },
-              "example": {
-                "refreshToken": "existing.refresh.jwt.token"
+                "required": [
+                  "images"
+                ],
+                "type": "object",
+                "properties": {
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
               }
             }
           },
@@ -95,30 +102,11 @@
         },
         "responses": {
           "200": {
-            "description": "재발급 성공",
+            "description": "OK",
             "content": {
               "application/json": {
-                "example": {
-                  "success": true,
-                  "data": {
-                    "accessToken": "new.access.jwt.token",
-                    "refreshToken": "new.refresh.jwt.token"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "인증 실패 - 리프레시 토큰이 유효하지 않음/만료됨",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 401,
-                    "code": "AUTH-402",
-                    "message": "유효하지 않은 토큰입니다"
-                  }
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseUploadImagesResponse"
                 }
               }
             }
@@ -145,6 +133,21 @@
           "required": true
         },
         "responses": {
+          "409": {
+            "description": "이메일 또는 로그인ID 중복",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 409,
+                    "code": "E202",
+                    "message": "이미 사용 중인 이메일입니다"
+                  }
+                }
+              }
+            }
+          },
           "201": {
             "description": "회원가입 성공",
             "content": {
@@ -161,21 +164,6 @@
                       "profileImageUrl": "https://cdn.example.com/profiles/popup_seller.png",
                       "introduction": "팝업 운영 3년차, 굿즈 위주"
                     }
-                  }
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "이메일 또는 로그인ID 중복",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 409,
-                    "code": "E202",
-                    "message": "이미 사용 중인 이메일입니다"
                   }
                 }
               }
@@ -244,21 +232,6 @@
           "required": true
         },
         "responses": {
-          "404": {
-            "description": "마스터 데이터 ID 불일치",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 404,
-                    "code": "E101",
-                    "message": "존재하지 않는 스타일이 포함되어 있습니다"
-                  }
-                }
-              }
-            }
-          },
           "201": {
             "description": "회원가입 성공",
             "content": {
@@ -269,6 +242,21 @@
                     "userId": 1,
                     "email": "consumer1@example.com",
                     "role": "CONSUMER"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "마스터 데이터 ID 불일치",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 404,
+                    "code": "E101",
+                    "message": "존재하지 않는 스타일이 포함되어 있습니다"
                   }
                 }
               }
@@ -316,6 +304,42 @@
                       }
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "토큰 재발급 (Refresh Rotation)",
+        "description": "유효한 refreshToken을 보내면 새 accessToken/refreshToken을 발급합니다.",
+        "operationId": "refresh",
+        "requestBody": {
+          "description": "리프레시 토큰을 담아 요청합니다.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRefreshRequest"
+              },
+              "example": {
+                "refreshToken": "existing.refresh.jwt.token"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseTokenPair"
                 }
               }
             }
@@ -400,6 +424,21 @@
           "required": true
         },
         "responses": {
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 401,
+                    "code": "AUTH-401",
+                    "message": "이메일 또는 비밀번호가 올바르지 않습니다"
+                  }
+                }
+              }
+            }
+          },
           "200": {
             "description": "로그인 성공",
             "content": {
@@ -413,21 +452,6 @@
                         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQ09OU1VNRVIiLCJpc3MiOiJpdGRhaW5nLXNlcnZlciIsImlhdCI6MTczMDQxOTIwMCwiZXhwIjoxNzMwNTA1NjAwfQ.signature"
                       }
                     }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "인증 실패",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 401,
-                    "code": "AUTH-401",
-                    "message": "이메일 또는 비밀번호가 올바르지 않습니다"
                   }
                 }
               }
@@ -480,21 +504,6 @@
               }
             }
           },
-          "401": {
-            "description": "인증 실패 - 토큰이 없거나 유효하지 않음",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 401,
-                    "code": "AUTH-401",
-                    "message": "인증이 필요합니다"
-                  }
-                }
-              }
-            }
-          },
           "404": {
             "description": "사용자를 찾을 수 없음",
             "content": {
@@ -505,6 +514,21 @@
                     "status": 404,
                     "code": "COMMON-404",
                     "message": "사용자를 찾을 수 없습니다"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 실패 - 토큰이 없거나 유효하지 않음",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 401,
+                    "code": "AUTH-401",
+                    "message": "인증이 필요합니다"
                   }
                 }
               }
@@ -584,20 +608,6 @@
           "master-query-controller"
         ],
         "operationId": "getCategories",
-        "parameters": [
-          {
-            "name": "type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "POPUP",
-                "CONSUMER"
-              ]
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -710,16 +720,64 @@
           }
         }
       },
-      "TokenRefreshRequest": {
-        "required": [
-          "refreshToken"
-        ],
+      "ApiResponseUploadImagesResponse": {
         "type": "object",
         "properties": {
-          "refreshToken": {
-            "type": "string"
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/UploadImagesResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
           }
         }
+      },
+      "UploadImageResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "width": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "height": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "description": "단일 업로드 응답"
+      },
+      "UploadImagesResponse": {
+        "type": "object",
+        "properties": {
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UploadImageResponse"
+            }
+          }
+        },
+        "description": "복수 업로드 응답"
       },
       "SignupSellerRequest": {
         "required": [
@@ -944,6 +1002,77 @@
         },
         "description": "소비자 회원가입 요청(기본정보 + 선호 선택을 한 번에 제출)"
       },
+      "TokenRefreshRequest": {
+        "required": [
+          "refreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "fieldErrors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          }
+        }
+      },
+      "ApiResponseTokenPair": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/TokenPair"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "FieldError": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "TokenPair": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
       "LogoutRequest": {
         "type": "object",
         "properties": {
@@ -972,27 +1101,6 @@
         },
         "description": "로그인 요청"
       },
-      "ApiError": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "fieldErrors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FieldError"
-            }
-          }
-        }
-      },
       "ApiResponseListStyleResponse": {
         "type": "object",
         "properties": {
@@ -1007,20 +1115,6 @@
           },
           "error": {
             "$ref": "#/components/schemas/ApiError"
-          }
-        }
-      },
-      "FieldError": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          },
-          "reason": {
-            "type": "string"
           }
         }
       },
@@ -1120,13 +1214,6 @@
           },
           "name": {
             "type": "string"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "POPUP",
-              "CONSUMER"
-            ]
           }
         }
       }
