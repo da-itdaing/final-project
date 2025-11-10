@@ -4,7 +4,9 @@ package com.da.itdaing.domain.seller.api;
 import com.da.itdaing.domain.seller.dto.SellerProfileRequest;
 import com.da.itdaing.domain.seller.dto.SellerProfileResponse;
 import com.da.itdaing.domain.seller.service.SellerProfileService;
-import com.da.itdaing.global.api.ApiResponse;
+// Unified ApiResponse (use global.web.ApiResponse only)
+import com.da.itdaing.global.web.ApiResponse;
+import org.springframework.http.ResponseEntity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -20,10 +22,10 @@ public class SellerProfileController {
     private final SellerProfileService sellerProfileService;
 
     @GetMapping(value = "/profile", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<SellerProfileResponse> getMyProfile(Principal principal) {
+    public ResponseEntity<ApiResponse<SellerProfileResponse>> getMyProfile(Principal principal) {
         Long userId = Long.valueOf(principal.getName()); // MvcNoSecurityTest에서 넣은 "1"
         SellerProfileResponse resp = sellerProfileService.getMyProfile(userId);
-        return ApiResponse.success(resp); // <-- 바디에 JSON 쓰기
+        return ResponseEntity.ok(ApiResponse.success(resp)); // 명시적 ResponseEntity로 JSON 직렬화 보장
     }
 
     @PutMapping(
@@ -31,12 +33,12 @@ public class SellerProfileController {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ApiResponse<SellerProfileResponse> upsertMyProfile(
+    public ResponseEntity<ApiResponse<SellerProfileResponse>> upsertMyProfile(
         Principal principal,
         @Valid @RequestBody SellerProfileRequest req
     ) {
         Long userId = Long.valueOf(principal.getName());
         SellerProfileResponse resp = sellerProfileService.upsertMyProfile(userId, req);
-        return ApiResponse.success(resp); // <-- 바디에 JSON 쓰기
+        return ResponseEntity.ok(ApiResponse.success(resp));
     }
 }

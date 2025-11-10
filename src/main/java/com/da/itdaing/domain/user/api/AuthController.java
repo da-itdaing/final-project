@@ -249,9 +249,9 @@ public class AuthController {
             )
     })
     @PostMapping("/auth/signup/seller")
-    public ApiResponse<AuthDto.SignupResponse> signupSeller(
+    public ResponseEntity<ApiResponse<AuthDto.SignupResponse>> signupSeller(
         @Valid @RequestBody AuthDto.SignupSellerRequest request) {
-        return ApiResponse.success(authService.signupSeller(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(authService.signupSeller(request)));
     }
 
     @Operation(

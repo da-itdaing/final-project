@@ -134,7 +134,7 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andDo(print())
-            .andExpect(status().isOk()) // 컨트롤러에서 201로 바꾸면 isCreated()로 변경
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.userId").value(1))
             .andExpect(jsonPath("$.data.email").value("newconsumer@example.com"))
@@ -152,6 +152,7 @@ class AuthControllerTest {
             .passwordConfirm("password123")
             .name("박판매")
             .nickname("팝업왕")
+            .activityRegion("서울/강남구")
             .build();
 
         AuthDto.SignupResponse response = AuthDto.SignupResponse.builder()
@@ -168,7 +169,7 @@ class AuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andDo(print())
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.userId").value(2))
             .andExpect(jsonPath("$.data.email").value("newseller@example.com"))

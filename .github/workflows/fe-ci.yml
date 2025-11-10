@@ -1,0 +1,33 @@
+name: FE CI
+on:
+  pull_request:
+    branches: [ "dev/integration", "main" ]
+    paths:
+      - 'itdaing-web/**'
+      - '.github/workflows/fe-ci.yml'
+jobs:
+  fe:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: itdaing-web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Enable corepack & install deps
+        run: |
+          corepack enable
+          pnpm install
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Unit Tests
+        run: pnpm test
+      - name: Build
+        run: pnpm build

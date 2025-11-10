@@ -3,12 +3,11 @@ package com.da.itdaing.domain.user.repository;
 import com.da.itdaing.domain.common.enums.UserRole;
 import com.da.itdaing.domain.user.entity.RefreshToken;
 import com.da.itdaing.domain.user.entity.Users;
+import com.da.itdaing.testsupport.JpaSliceTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,8 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * RefreshTokenRepository 테스트
  */
-@DataJpaTest
-@ActiveProfiles("test")
+@JpaSliceTest
 @DisplayName("RefreshToken Repository 테스트")
 class RefreshTokenRepositoryTest {
 
@@ -175,7 +173,7 @@ class RefreshTokenRepositoryTest {
         createAndSaveRefreshToken(user, "del_hash_b_" + "5".repeat(55), true);
 
         // when
-        long deletedCount = refreshTokenRepository.deleteAllByUserId(user.getId());
+        int deletedCount = refreshTokenRepository.deleteAllByUserId(user.getId());
         entityManager.flush();
         entityManager.clear();
 

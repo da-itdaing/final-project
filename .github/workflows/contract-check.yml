@@ -1,0 +1,40 @@
+name: Contract Check
+on:
+  pull_request:
+    branches: [ "dev/integration", "main" ]
+    paths:
+      - 'build.gradle.kts'
+      - 'src/**'
+      - '.github/workflows/contract-check.yml'
+jobs:
+  openapi-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Generate OpenAPI (springdoc plugin)
+        run: |
+          ./gradlew openApi -q || ./gradlew openApi
+          ls -R build/openapi || true
+      - name: Copy generated spec
+        run: |
+          cp build/openapi/openapi.yaml openapi-pr.yaml || echo '{}' > openapi-pr.yaml
+      - name: Fetch base spec from dev/integration
+        run: |
+          git fetch origin dev/integration:refs/remotes/origin/dev/integration
+          git show origin/dev/integration:build/openapi/openapi.yaml > openapi-base.yaml || echo '{}' > openapi-base.yaml
+      - name: Setup Node for diff
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install redocly CLI & diff
+        run: |
+          npm i -g @redocly/cli
+          redocly diff openapi-base.yaml openapi-pr.yaml --fail-on='breaking-changes' || { echo 'OpenAPI breaking changes detected'; exit 1; }
