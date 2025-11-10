@@ -1,14 +1,22 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Itdaing API",
-    "description": "Itdaing 팝업스토어 추천 서비스 API\n\n## 인증 방식\nJWT Bearer Token 기반 인증을 사용합니다.\n\n1. `/api/auth/login` 엔드포인트로 로그인하여 JWT 토큰을 발급받습니다.\n2. 발급받은 토큰을 Authorization 헤더에 포함하여 API를 호출합니다.\n   - 형식: `Authorization: Bearer {token}`\n\n## 사용자 역할\n- **CONSUMER**: 일반 소비자 (팝업스토어 검색, 위시리스트, 리뷰 작성)\n- **SELLER**: 판매자 (팝업스토어 등록 및 관리)\n- **ADMIN**: 관리자 (시스템 관리 및 승인)\n\n## JWT 토큰 구조\nJWT 토큰에는 다음 클레임이 포함됩니다:\n- `sub`: 사용자 ID\n- `role`: ROLE_CONSUMER, ROLE_SELLER, ROLE_ADMIN 중 하나\n- `iss`: itdaing-server\n- `iat`: 발급 시각 (Unix timestamp)\n- `exp`: 만료 시각 (발급 후 24시간)\n\n## 공개 API\n다음 엔드포인트는 인증 없이 접근 가능합니다:\n- `/api/auth/**`: 인증 관련 API (회원가입, 로그인)\n- `GET /api/master/**`: 마스터 데이터 조회 (지역, 스타일, 카테고리 등)\n",
-    "version": "v1.0.0"
+    "title": "DA-ITDAING API",
+    "description": "DA-ITDAING 팝업스토어 플랫폼 API 문서\n\n## 인증 방식\nJWT Bearer Token 기반 인증을 사용합니다.\n\n1. `/api/auth/login` 엔드포인트로 로그인하여 JWT 토큰을 발급받습니다.\n2. 발급받은 토큰을 Authorization 헤더에 포함하여 API를 호출합니다.\n   - 형식: `Authorization: Bearer {token}`\n\n## 사용자 역할\n- **CONSUMER**: 일반 소비자 (팝업스토어 검색, 위시리스트, 리뷰 작성)\n- **SELLER**: 판매자 (팝업스토어 등록 및 관리)\n- **ADMIN**: 관리자 (시스템 관리 및 승인)\n\n## JWT 토큰 구조\nJWT 토큰에는 다음 클레임이 포함됩니다:\n- `sub`: 사용자 ID\n- `role`: ROLE_CONSUMER, ROLE_SELLER, ROLE_ADMIN 중 하나\n- `iss`: itdaing-server\n- `iat`: 발급 시각 (Unix timestamp)\n- `exp`: 만료 시각 (발급 후 24시간)\n\n## 공개 API\n다음 엔드포인트는 인증 없이 접근 가능합니다:\n- `/api/auth/**`: 인증 관련 API (회원가입, 로그인, 토큰 재발급, 로그아웃)\n- `GET /api/master/**`: 마스터 데이터 조회 (지역, 스타일, 카테고리, 특징 등)\n\n## 기본 URL\n- 로컬: http://localhost:8080\n- 운영: https://aischool.daitdaing.link\n",
+    "version": "0.0.1-SNAPSHOT"
+  },
+  "externalDocs": {
+    "description": "Project Docs \u0026 Swagger UI",
+    "url": "https://da-itdaing.github.io/final-project/"
   },
   "servers": [
     {
       "url": "http://localhost:8080",
-      "description": "Generated server url"
+      "description": "Local"
+    },
+    {
+      "url": "https://aischool.daitdaing.link",
+      "description": "Production"
     }
   ],
   "security": [
@@ -17,6 +25,18 @@
     }
   ],
   "tags": [
+    {
+      "name": "Seller Profile",
+      "description": "판매자 프로필 조회/등록/수정 API"
+    },
+    {
+      "name": "Auth",
+      "description": "인증/인가 및 사용자 세션 관리 API"
+    },
+    {
+      "name": "Master",
+      "description": "카테고리/스타일/지역/특징 등 마스터 데이터 조회 API"
+    },
     {
       "name": "Auth",
       "description": "인증 API"
@@ -71,169 +91,54 @@
         }
       }
     },
-    "/api/uploads/images": {
+    "/api/auth/token/refresh": {
       "post": {
         "tags": [
-          "Upload"
+          "Auth"
         ],
-        "summary": "이미지 업로드 (복수)",
-        "operationId": "uploadImages",
+        "summary": "액세스 토큰 재발급 (Refresh Token)",
+        "description": "만료되었거나 곧 만료될 Access Token을 **Refresh Token**으로 갱신합니다.\n- 본 API는 Authorization 헤더가 필요없고, **refreshToken**을 본문으로 받습니다.\n- 서버가 새 Access/Refresh 토큰 쌍을 반환합니다.\n",
+        "operationId": "refresh",
         "requestBody": {
+          "description": "리프레시 토큰을 담아 요청합니다.",
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
-                "required": [
-                  "images"
-                ],
-                "type": "object",
-                "properties": {
-                  "images": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "binary"
-                    }
+                "$ref": "#/components/schemas/TokenRefreshRequest"
+              },
+              "example": {
+                "refreshToken": "existing.refresh.jwt.token"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "재발급 성공",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "data": {
+                    "accessToken": "new.access.jwt.token",
+                    "refreshToken": "new.refresh.jwt.token"
                   }
                 }
               }
             }
           },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
+          "401": {
+            "description": "인증 실패 - 리프레시 토큰이 유효하지 않음/만료됨",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseUploadImagesResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/inquiries": {
-      "get": {
-        "tags": [
-          "message-controller"
-        ],
-        "operationId": "listThreads",
-        "parameters": [
-          {
-            "name": "role",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "box",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 0
-            }
-          },
-          {
-            "name": "size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 20
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseThreadListResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "message-controller"
-        ],
-        "operationId": "createThreadAndSend",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateInquiryRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseCreateInquiryResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/inquiries/{threadId}/reply": {
-      "post": {
-        "tags": [
-          "message-controller"
-        ],
-        "operationId": "reply",
-        "parameters": [
-          {
-            "name": "threadId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReplyRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseIdResponse"
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 401,
+                    "code": "AUTH-402",
+                    "message": "유효하지 않은 토큰입니다"
+                  }
                 }
               }
             }
@@ -275,6 +180,21 @@
               }
             }
           },
+          "400": {
+            "description": "입력값 검증 실패",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 400,
+                    "code": "E001",
+                    "message": "입력값이 올바르지 않습니다"
+                  }
+                }
+              }
+            }
+          },
           "201": {
             "description": "회원가입 성공",
             "content": {
@@ -291,21 +211,6 @@
                       "profileImageUrl": "https://cdn.example.com/profiles/popup_seller.png",
                       "introduction": "팝업 운영 3년차, 굿즈 위주"
                     }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "입력값 검증 실패",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 400,
-                    "code": "E001",
-                    "message": "입력값이 올바르지 않습니다"
                   }
                 }
               }
@@ -359,36 +264,6 @@
           "required": true
         },
         "responses": {
-          "404": {
-            "description": "마스터 데이터 ID 불일치",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 404,
-                    "code": "E101",
-                    "message": "존재하지 않는 스타일이 포함되어 있습니다"
-                  }
-                }
-              }
-            }
-          },
-          "201": {
-            "description": "회원가입 성공",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "data": {
-                    "userId": 1,
-                    "email": "consumer1@example.com",
-                    "role": "CONSUMER"
-                  }
-                }
-              }
-            }
-          },
           "409": {
             "description": "이메일 또는 로그인ID 중복",
             "content": {
@@ -434,39 +309,33 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/auth/refresh": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "토큰 재발급 (Refresh Rotation)",
-        "description": "유효한 refreshToken을 보내면 새 accessToken/refreshToken을 발급합니다.",
-        "operationId": "refresh",
-        "requestBody": {
-          "description": "리프레시 토큰을 담아 요청합니다.",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TokenRefreshRequest"
-              },
-              "example": {
-                "refreshToken": "existing.refresh.jwt.token"
+          },
+          "404": {
+            "description": "마스터 데이터 ID 불일치",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 404,
+                    "code": "E101",
+                    "message": "존재하지 않는 스타일이 포함되어 있습니다"
+                  }
+                }
               }
             }
           },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
+          "201": {
+            "description": "회원가입 성공",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseTokenPair"
+                "example": {
+                  "success": true,
+                  "data": {
+                    "userId": 1,
+                    "email": "consumer1@example.com",
+                    "role": "CONSUMER"
+                  }
                 }
               }
             }
@@ -506,6 +375,9 @@
           }
         },
         "responses": {
+          "204": {
+            "description": "로그아웃 성공 (본문 없음)"
+          },
           "401": {
             "description": "인증 실패 - Authorization 헤더 없음/형식 오류/토큰 무효",
             "content": {
@@ -520,9 +392,6 @@
                 }
               }
             }
-          },
-          "204": {
-            "description": "로그아웃 성공 (본문 없음)"
           }
         },
         "security": [
@@ -596,6 +465,21 @@
         "description": "인증된 사용자의 프로필 정보를 조회합니다.\n\n이 API는 JWT 토큰 인증이 필요합니다.\nAuthorization 헤더에 \"Bearer {token}\" 형식으로 토큰을 포함해야 합니다.\n\n응답의 role 필드는 다음 값 중 하나입니다:\n- CONSUMER: 일반 소비자\n- SELLER: 팝업스토어 판매자\n- ADMIN: 시스템 관리자\n",
         "operationId": "getMyProfile_1",
         "responses": {
+          "404": {
+            "description": "사용자를 찾을 수 없음",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 404,
+                    "code": "COMMON-404",
+                    "message": "사용자를 찾을 수 없습니다"
+                  }
+                }
+              }
+            }
+          },
           "200": {
             "description": "조회 성공",
             "content": {
@@ -641,21 +525,6 @@
                     "status": 401,
                     "code": "AUTH-401",
                     "message": "인증이 필요합니다"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "사용자를 찾을 수 없음",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 404,
-                    "code": "COMMON-404",
-                    "message": "사용자를 찾을 수 없습니다"
                   }
                 }
               }
@@ -735,6 +604,20 @@
           "master-query-controller"
         ],
         "operationId": "getCategories",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "POPUP",
+                "CONSUMER"
+              ]
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -742,96 +625,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseListCategoryResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/inquiries/{threadId}": {
-      "get": {
-        "tags": [
-          "message-controller"
-        ],
-        "operationId": "getThreadDetail",
-        "parameters": [
-          {
-            "name": "threadId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          },
-          {
-            "name": "role",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 0
-            }
-          },
-          {
-            "name": "size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 50
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseThreadDetailResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/inquiries/messages/{messageId}": {
-      "delete": {
-        "tags": [
-          "message-controller"
-        ],
-        "operationId": "softDelete",
-        "parameters": [
-          {
-            "name": "messageId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponseVoid"
                 }
               }
             }
@@ -875,21 +668,7 @@
           }
         }
       },
-      "ApiResponseSellerProfileResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/SellerProfileResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorBody"
-          }
-        }
-      },
-      "ErrorBody": {
+      "ApiError": {
         "type": "object",
         "properties": {
           "status": {
@@ -900,6 +679,40 @@
             "type": "string"
           },
           "message": {
+            "type": "string"
+          },
+          "fieldErrors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          }
+        }
+      },
+      "ApiResponseSellerProfileResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SellerProfileResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ApiError"
+          }
+        }
+      },
+      "FieldError": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "reason": {
             "type": "string"
           }
         }
@@ -937,187 +750,20 @@
           }
         }
       },
-      "ApiResponseUploadImagesResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/UploadImagesResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorBody"
-          }
-        }
-      },
-      "UploadImageResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "key": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          },
-          "originalName": {
-            "type": "string"
-          },
-          "contentType": {
-            "type": "string"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "width": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "height": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "description": "단일 업로드 응답"
-      },
-      "UploadImagesResponse": {
-        "type": "object",
-        "properties": {
-          "files": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UploadImageResponse"
-            }
-          }
-        },
-        "description": "복수 업로드 응답"
-      },
-      "AttachmentDto": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          },
-          "mimeType": {
-            "type": "string"
-          },
-          "fileKey": {
-            "type": "string"
-          },
-          "originalName": {
-            "type": "string"
-          },
-          "sizeBytes": {
-            "type": "integer",
-            "format": "int64"
-          }
-        },
-        "description": "메시지 첨부"
-      },
-      "CreateInquiryRequest": {
+      "TokenRefreshRequest": {
         "required": [
-          "content",
-          "receiverId",
-          "subject"
+          "refreshToken"
         ],
         "type": "object",
         "properties": {
-          "receiverId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "subject": {
+          "refreshToken": {
             "type": "string"
-          },
-          "content": {
-            "type": "string"
-          },
-          "attachments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttachmentDto"
-            }
-          }
-        },
-        "description": "문의(스레드) 생성 요청"
-      },
-      "ApiResponseCreateInquiryResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/CreateInquiryResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorBody"
-          }
-        }
-      },
-      "CreateInquiryResponse": {
-        "type": "object",
-        "properties": {
-          "threadId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "messageId": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      },
-      "ReplyRequest": {
-        "required": [
-          "content"
-        ],
-        "type": "object",
-        "properties": {
-          "content": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "attachments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttachmentDto"
-            }
-          }
-        },
-        "description": "답장 요청"
-      },
-      "ApiResponseIdResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/IdResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorBody"
-          }
-        }
-      },
-      "IdResponse": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
           }
         }
       },
       "SignupSellerRequest": {
         "required": [
+          "activityRegion",
           "email",
           "loginId",
           "name",
@@ -1169,7 +815,7 @@
             "maxLength": 255,
             "minLength": 0,
             "type": "string",
-            "description": "활동 지역 (선택)",
+            "description": "활동 지역",
             "example": "광주/남구"
           },
           "snsUrl": {
@@ -1339,77 +985,6 @@
         },
         "description": "소비자 회원가입 요청(기본정보 + 선호 선택을 한 번에 제출)"
       },
-      "TokenRefreshRequest": {
-        "required": [
-          "refreshToken"
-        ],
-        "type": "object",
-        "properties": {
-          "refreshToken": {
-            "type": "string"
-          }
-        }
-      },
-      "ApiError": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          },
-          "fieldErrors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FieldError"
-            }
-          }
-        }
-      },
-      "ApiResponseTokenPair": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/TokenPair"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ApiError"
-          }
-        }
-      },
-      "FieldError": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          },
-          "reason": {
-            "type": "string"
-          }
-        }
-      },
-      "TokenPair": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string"
-          },
-          "refreshToken": {
-            "type": "string"
-          }
-        }
-      },
       "LogoutRequest": {
         "type": "object",
         "properties": {
@@ -1551,169 +1126,13 @@
           },
           "name": {
             "type": "string"
-          }
-        }
-      },
-      "ApiResponseThreadListResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
           },
-          "data": {
-            "$ref": "#/components/schemas/ThreadListResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorBody"
-          }
-        }
-      },
-      "ThreadListResponse": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ThreadSummary"
-            }
-          },
-          "totalElements": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "ThreadSummary": {
-        "type": "object",
-        "properties": {
-          "threadId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "subject": {
-            "type": "string"
-          },
-          "lastSnippet": {
-            "type": "string"
-          },
-          "updatedAt": {
+          "type": {
             "type": "string",
-            "format": "date-time"
-          },
-          "unreadForMe": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "ApiResponseThreadDetailResponse": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "$ref": "#/components/schemas/ThreadDetailResponse"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorBody"
-          }
-        }
-      },
-      "MessageItem": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "senderId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "receiverId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "title": {
-            "type": "string"
-          },
-          "content": {
-            "type": "string"
-          },
-          "sentAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "readAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "attachments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AttachmentDto"
-            }
-          }
-        }
-      },
-      "ThreadDetailResponse": {
-        "type": "object",
-        "properties": {
-          "threadId": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "subject": {
-            "type": "string"
-          },
-          "messages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MessageItem"
-            }
-          },
-          "page": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "size": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalElements": {
-            "type": "integer",
-            "format": "int64"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "ApiResponseVoid": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "data": {
-            "type": "object"
-          },
-          "error": {
-            "$ref": "#/components/schemas/ErrorBody"
+            "enum": [
+              "POPUP",
+              "CONSUMER"
+            ]
           }
         }
       }
