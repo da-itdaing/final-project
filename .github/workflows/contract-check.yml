@@ -21,6 +21,8 @@ jobs:
           cache: gradle
       - name: Generate OpenAPI (springdoc plugin)
         run: |
+          VER=$(./gradlew properties -q | grep '^version:' | awk '{print $2}')
+          export APP_VERSION=${VER}
           ./gradlew generateOpenApiDocs -q || ./gradlew generateOpenApiDocs
           ls -R build/openapi || true
       - name: Copy generated spec

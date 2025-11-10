@@ -44,7 +44,10 @@ jobs:
 
             # springdoc 플러그인이 앱을 잠깐 띄워서 /v3/api-docs.yaml을 파일로 생성
             - name: Generate OpenAPI spec
-              run: ./gradlew --no-daemon generateOpenApiDocs
+              run: |
+                VER=$(./gradlew properties -q | grep '^version:' | awk '{print $2}')
+                export APP_VERSION=${VER}
+                ./gradlew --no-daemon generateOpenApiDocs
 
             - name: Prepare static Swagger UI
               run: |

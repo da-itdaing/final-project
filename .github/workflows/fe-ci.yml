@@ -19,10 +19,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'itdaing-web/pnpm-lock.yaml'
       - name: Enable corepack & install deps
         run: |
           corepack enable
-          pnpm install
+          corepack prepare pnpm@9.15.0 --activate
+          pnpm --version
+          pnpm install --frozen-lockfile
       - name: Lint
         run: pnpm lint
       - name: Typecheck

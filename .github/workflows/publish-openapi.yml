@@ -36,7 +36,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Generate OpenAPI docs
-        run: ./gradlew --no-daemon clean generateOpenApiDocs
+        run: |
+          VER=$(./gradlew properties -q | grep '^version:' | awk '{print $2}')
+          export APP_VERSION=${VER}
+          ./gradlew --no-daemon clean generateOpenApiDocs
 
       - name: Prepare static Swagger site
         run: |
