@@ -114,6 +114,133 @@
         }
       }
     },
+    "/api/inquiries": {
+      "get": {
+        "tags": [
+          "message-controller"
+        ],
+        "operationId": "listThreads",
+        "parameters": [
+          {
+            "name": "role",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "box",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseThreadListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "message-controller"
+        ],
+        "operationId": "createThreadAndSend",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInquiryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCreateInquiryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inquiries/{threadId}/reply": {
+      "post": {
+        "tags": [
+          "message-controller"
+        ],
+        "operationId": "reply",
+        "parameters": [
+          {
+            "name": "threadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReplyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseIdResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/signup/seller": {
       "post": {
         "tags": [
@@ -232,21 +359,6 @@
           "required": true
         },
         "responses": {
-          "201": {
-            "description": "회원가입 성공",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "data": {
-                    "userId": 1,
-                    "email": "consumer1@example.com",
-                    "role": "CONSUMER"
-                  }
-                }
-              }
-            }
-          },
           "404": {
             "description": "마스터 데이터 ID 불일치",
             "content": {
@@ -257,6 +369,21 @@
                     "status": 404,
                     "code": "E101",
                     "message": "존재하지 않는 스타일이 포함되어 있습니다"
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "회원가입 성공",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "data": {
+                    "userId": 1,
+                    "email": "consumer1@example.com",
+                    "role": "CONSUMER"
                   }
                 }
               }
@@ -504,21 +631,6 @@
               }
             }
           },
-          "404": {
-            "description": "사용자를 찾을 수 없음",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 404,
-                    "code": "COMMON-404",
-                    "message": "사용자를 찾을 수 없습니다"
-                  }
-                }
-              }
-            }
-          },
           "401": {
             "description": "인증 실패 - 토큰이 없거나 유효하지 않음",
             "content": {
@@ -529,6 +641,21 @@
                     "status": 401,
                     "code": "AUTH-401",
                     "message": "인증이 필요합니다"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사용자를 찾을 수 없음",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 404,
+                    "code": "COMMON-404",
+                    "message": "사용자를 찾을 수 없습니다"
                   }
                 }
               }
@@ -615,6 +742,96 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseListCategoryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inquiries/{threadId}": {
+      "get": {
+        "tags": [
+          "message-controller"
+        ],
+        "operationId": "getThreadDetail",
+        "parameters": [
+          {
+            "name": "threadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseThreadDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inquiries/messages/{messageId}": {
+      "delete": {
+        "tags": [
+          "message-controller"
+        ],
+        "operationId": "softDelete",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
                 }
               }
             }
@@ -778,6 +995,126 @@
           }
         },
         "description": "복수 업로드 응답"
+      },
+      "AttachmentDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "fileKey": {
+            "type": "string"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "description": "메시지 첨부"
+      },
+      "CreateInquiryRequest": {
+        "required": [
+          "content",
+          "receiverId",
+          "subject"
+        ],
+        "type": "object",
+        "properties": {
+          "receiverId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          }
+        },
+        "description": "문의(스레드) 생성 요청"
+      },
+      "ApiResponseCreateInquiryResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateInquiryResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "CreateInquiryResponse": {
+        "type": "object",
+        "properties": {
+          "threadId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "messageId": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ReplyRequest": {
+        "required": [
+          "content"
+        ],
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          }
+        },
+        "description": "답장 요청"
+      },
+      "ApiResponseIdResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/IdResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "IdResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
       },
       "SignupSellerRequest": {
         "required": [
@@ -1214,6 +1551,169 @@
           },
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "ApiResponseThreadListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ThreadListResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "ThreadListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ThreadSummary"
+            }
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ThreadSummary": {
+        "type": "object",
+        "properties": {
+          "threadId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "lastSnippet": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unreadForMe": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ApiResponseThreadDetailResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ThreadDetailResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "MessageItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "senderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "receiverId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "readAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AttachmentDto"
+            }
+          }
+        }
+      },
+      "ThreadDetailResponse": {
+        "type": "object",
+        "properties": {
+          "threadId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageItem"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ApiResponseVoid": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
           }
         }
       }
