@@ -1,7 +1,13 @@
 package com.da.itdaing.domain.geo;
 
-import com.da.itdaing.domain.master.Region;
-import com.da.itdaing.domain.master.RegionRepository;
+import com.da.itdaing.domain.geo.entity.ZoneArea;
+import com.da.itdaing.domain.geo.entity.ZoneAvailability;
+import com.da.itdaing.domain.geo.entity.ZoneCell;
+import com.da.itdaing.domain.geo.repository.ZoneAreaRepository;
+import com.da.itdaing.domain.geo.repository.ZoneAvailabilityRepository;
+import com.da.itdaing.domain.geo.repository.ZoneCellRepository;
+import com.da.itdaing.domain.master.entity.Region;
+import com.da.itdaing.domain.master.repository.RegionRepository;
 import com.da.itdaing.testsupport.JpaSliceTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

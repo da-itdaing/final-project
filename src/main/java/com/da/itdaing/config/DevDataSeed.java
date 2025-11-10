@@ -1,15 +1,14 @@
 package com.da.itdaing.config;
 
-import com.da.itdaing.domain.common.enums.CategoryType;
 import com.da.itdaing.domain.common.enums.UserRole;
-import com.da.itdaing.domain.master.Category;
-import com.da.itdaing.domain.master.CategoryRepository;
-import com.da.itdaing.domain.master.Feature;
-import com.da.itdaing.domain.master.FeatureRepository;
-import com.da.itdaing.domain.master.Region;
-import com.da.itdaing.domain.master.RegionRepository;
-import com.da.itdaing.domain.master.Style;
-import com.da.itdaing.domain.master.StyleRepository;
+import com.da.itdaing.domain.master.entity.Category;
+import com.da.itdaing.domain.master.repository.CategoryRepository;
+import com.da.itdaing.domain.master.entity.Feature;
+import com.da.itdaing.domain.master.repository.FeatureRepository;
+import com.da.itdaing.domain.master.entity.Region;
+import com.da.itdaing.domain.master.repository.RegionRepository;
+import com.da.itdaing.domain.master.entity.Style;
+import com.da.itdaing.domain.master.repository.StyleRepository;
 import com.da.itdaing.domain.seller.entity.SellerProfile;
 import com.da.itdaing.domain.seller.repository.SellerProfileRepository;
 import com.da.itdaing.domain.user.entity.UserPrefCategory;
@@ -69,19 +68,13 @@ public class DevDataSeed implements CommandLineRunner {
        Master seed
        ========================= */
     private void seedMaster() {
-        // Category (CONSUMER / POPUP 양쪽 모두 심음)
+        // Category
         if (categoryRepository.count() == 0) {
-            List<String> consumerCats = List.of(
+            List<String> categories = List.of(
                 "패션", "뷰티", "음식", "건강", "공연/전시", "스포츠", "키즈", "아트", "굿즈", "반려동물"
             );
-            consumerCats.forEach(name -> categoryRepository.save(
-                Category.builder().name(name).type(CategoryType.CONSUMER).build()
-            ));
-            // 동일 명칭을 POPUP 타입으로도 심어두면 팝업 등록 필터에 바로 재사용 가능
-            consumerCats.forEach(name -> categoryRepository.save(
-                Category.builder().name(name).type(CategoryType.POPUP).build()
-            ));
-            log.info("Seeded {} categories (CONSUMER/POPUP)", consumerCats.size() * 2);
+            categories.forEach(name -> categoryRepository.save(Category.builder().name(name).build()));
+            log.info("Seeded {} categories", categories.size());
         }
 
         // Style
@@ -132,19 +125,15 @@ public class DevDataSeed implements CommandLineRunner {
             log.info("Seeded CONSUMER user: id={}, loginId={}", consumer.getId(), consumer.getLoginId());
         }
 
-        // 선호 Category (최소 1~최대 4개) - CONSUMER 타입에서 상위 3개만 연결
+        // 선호 Category (최소 1~최대 4개) - 상위 3개 예시
         if (userPrefCategoryRepository.count() == 0) {
-            List<Category> consumerCats = categoryRepository.findAll().stream()
-                .filter(c -> c.getType() == CategoryType.CONSUMER)
-                .limit(3) // 1~4개 규칙 중 3개 예시
-                .toList();
-            for (Category c : consumerCats) {
-                userPrefCategoryRepository.save(UserPrefCategory.builder()
-                    .user(consumer)
-                    .category(c)
-                    .build());
+            List<Category> cats = categoryRepository.findAll().stream().limit(3).toList();
+            for (Category c : cats) {
+                userPrefCategoryRepository.save(
+                    UserPrefCategory.builder().user(consumer).category(c).build()
+                );
             }
-            log.info("Linked {} consumer category prefs to user {}", consumerCats.size(), consumer.getId());
+            log.info("Linked {} category prefs to user {}", cats.size(), consumer.getId());
         }
 
         // 선호 Style (상위 3개)

@@ -1,6 +1,10 @@
 package com.da.itdaing.domain.messaging;
 
 import com.da.itdaing.domain.common.enums.UserRole;
+import com.da.itdaing.domain.messaging.entity.Message;
+import com.da.itdaing.domain.messaging.entity.MessageAttachment;
+import com.da.itdaing.domain.messaging.repository.MessageAttachmentRepository;
+import com.da.itdaing.domain.messaging.repository.MessageRepository;
 import com.da.itdaing.domain.user.entity.Users;
 import com.da.itdaing.domain.user.repository.UserRepository;
 import com.da.itdaing.testsupport.JpaSliceTest;

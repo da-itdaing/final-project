@@ -53,6 +53,10 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
 
+    // AWS SDK v2 (S3)
+    implementation(platform("software.amazon.awssdk:bom:2.25.66"))
+    implementation("software.amazon.awssdk:s3")
+
     // --- QueryDSL (Jakarta)
     implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")
     annotationProcessor("com.querydsl:querydsl-apt:5.0.0:jakarta")
