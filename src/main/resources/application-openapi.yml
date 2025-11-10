@@ -25,6 +25,16 @@ springdoc:
         enabled: true
     swagger-ui:
         enabled: false  # UI는 필요 없음(우린 스펙 파일만 뽑을 거라서)
+    info:
+        title: DA-ITDAING API
+        description: DA-ITDAING 팝업스토어 플랫폼 API 문서
+        version: v2.0.0
+        contact:
+            name: DA-ITDAING Team
+            url: https://github.com/da-itdaing/final-project
+        license:
+            name: Apache 2.0
+            url: https://www.apache.org/licenses/LICENSE-2.0.html
 
 logging:
     level:
