@@ -268,8 +268,7 @@ export default function App() {
                         <span className="text-[#eb0000]">11월</span> 오픈한다잉!
                       </>
                     }
-                    showViewAll={true}
-                    onViewAllClick={() => setShowAllOpening(!showAllOpening)}
+                    showViewAll={false}
                   />
                 }
                 items={eventItems.opening}
@@ -293,8 +292,7 @@ export default function App() {
                         <span className="text-[#eb0000]">울 동네</span>에 이런 팝업 있다잉!
                       </>
                     }
-                    showViewAll={true}
-                    onViewAllClick={() => setShowAllLocal(!showAllLocal)}
+                    showViewAll={false}
                   />
                 }
                 items={eventItems.local}
@@ -318,8 +316,7 @@ export default function App() {
                         <span className="text-[#eb0000]">카테고리</span>별 팝업 있다잉!
                       </>
                     }
-                    showViewAll={true}
-                    onViewAllClick={() => setShowAllCommunity(!showAllCommunity)}
+                    showViewAll={false}
                   />
                 }
                 items={eventItems.community}
