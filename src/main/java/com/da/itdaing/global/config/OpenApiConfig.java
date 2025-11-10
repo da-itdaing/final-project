@@ -5,8 +5,13 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.tags.Tag;
+import io.swagger.v3.oas.models.ExternalDocumentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import java.util.List;
 
 /**
  * OpenAPI(Swagger) 설정
@@ -14,13 +19,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
+    @Value("${app.version:v2.0.0}")
+    private String appVersion;
+
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Itdaing API")
+                        .title("DA-ITDAING API")
                         .description("""
-                                Itdaing 팝업스토어 추천 서비스 API
+                                DA-ITDAING 팝업스토어 플랫폼 API 문서
 
                                 ## 인증 방식
                                 JWT Bearer Token 기반 인증을 사용합니다.
@@ -44,11 +52,27 @@ public class OpenApiConfig {
 
                                 ## 공개 API
                                 다음 엔드포인트는 인증 없이 접근 가능합니다:
-                                - `/api/auth/**`: 인증 관련 API (회원가입, 로그인)
-                                - `GET /api/master/**`: 마스터 데이터 조회 (지역, 스타일, 카테고리 등)
+                                - `/api/auth/**`: 인증 관련 API (회원가입, 로그인, 토큰 재발급, 로그아웃)
+                                - `GET /api/master/**`: 마스터 데이터 조회 (지역, 스타일, 카테고리, 특징 등)
+
+                                ## 기본 URL
+                                - 로컬: http://localhost:8080
+                                - 운영: https://aischool.daitdaing.link
                                 """)
-                        .version("v1.0.0")
+                        .version(appVersion)
                 )
+                .servers(List.of(
+                        new Server().url("http://localhost:8080").description("Local"),
+                        new Server().url("https://aischool.daitdaing.link").description("Production")
+                ))
+                .tags(List.of(
+                        new Tag().name("Auth").description("인증/인가 및 사용자 세션 관리 API"),
+                        new Tag().name("Master").description("카테고리/스타일/지역/특징 등 마스터 데이터 조회 API"),
+                        new Tag().name("Seller Profile").description("판매자 프로필 조회/등록/수정 API")
+                ))
+                .externalDocs(new ExternalDocumentation()
+                        .description("Project Docs & Swagger UI")
+                        .url("https://da-itdaing.github.io/final-project/"))
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth", new SecurityScheme()
                                 .type(SecurityScheme.Type.HTTP)
