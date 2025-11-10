@@ -40,11 +40,37 @@ pnpm build
 ## 🔗 API 연동
 
 ### OpenAPI 스펙으로 타입 생성
+
+**방법 1: Gradle 태스크로 생성 (권장)**
 ```bash
-# 백엔드 서버 실행 후
+# 백엔드에서 OpenAPI 스펙 생성
+cd /Users/dorae222/final-project
+./gradlew generateOpenApiDocs
+
+# 프론트엔드에서 타입 생성
 cd itdaing-web
 pnpm gen:api
 ```
+
+**방법 2: 백엔드 실행 후 다운로드**
+```bash
+# 1. 백엔드 실행 (별도 터미널)
+./gradlew bootRun --args='--spring.profiles.active=openapi'
+
+# 2. 브라우저에서 OpenAPI JSON 다운로드
+# http://localhost:8080/v3/api-docs
+
+# 3. 파일을 build/openapi/openapi.yaml로 변환 후 저장
+
+# 4. 프론트엔드에서 타입 생성
+cd itdaing-web
+pnpm gen:api
+```
+
+**주의사항:**
+- `pnpm gen:api`는 `../build/openapi/openapi.yaml` 파일을 찾습니다
+- 백엔드를 먼저 실행하거나 Gradle 태스크로 스펙을 생성해야 합니다
+- 생성된 파일은 `src/api/` 폴더에 저장됩니다
 
 이 명령은 다음을 자동 생성합니다:
 - TypeScript 타입 정의
@@ -163,7 +189,13 @@ pnpm store prune
 # 타입 체크 실행
 pnpm typecheck
 
-# API 타입 재생성
+# API 타입 재생성 (백엔드 OpenAPI 스펙 필요)
+# 1. 백엔드에서 스펙 생성
+cd ..
+./gradlew generateOpenApiDocs
+
+# 2. 프론트엔드 타입 생성
+cd itdaing-web
 pnpm gen:api
 ```
 
