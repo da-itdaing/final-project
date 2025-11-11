@@ -113,4 +113,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.ref_name != 'main' && github.ref_name != 'master' }}
     steps:
-      - run: echo "Deploy skipped: Branch '${{ github.ref_name }}' is not permitted to deploy to GitHub Pages by environment protection rules. Artifact uploaded instead."
+      - name: Note skipped deploy
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          echo "Deploy skipped: Branch '${REF_NAME}' is not permitted to deploy to GitHub Pages by environment protection rules. Artifact uploaded instead."
