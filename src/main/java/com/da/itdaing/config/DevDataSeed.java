@@ -1,15 +1,17 @@
 package com.da.itdaing.config;
 
-import com.da.itdaing.domain.common.enums.CategoryType;
+import com.da.itdaing.domain.common.enums.AreaStatus;
 import com.da.itdaing.domain.common.enums.UserRole;
-import com.da.itdaing.domain.master.Category;
-import com.da.itdaing.domain.master.CategoryRepository;
-import com.da.itdaing.domain.master.Feature;
-import com.da.itdaing.domain.master.FeatureRepository;
-import com.da.itdaing.domain.master.Region;
-import com.da.itdaing.domain.master.RegionRepository;
-import com.da.itdaing.domain.master.Style;
-import com.da.itdaing.domain.master.StyleRepository;
+import com.da.itdaing.domain.geo.entity.ZoneArea;
+import com.da.itdaing.domain.geo.repository.ZoneAreaRepository;
+import com.da.itdaing.domain.master.entity.Category;
+import com.da.itdaing.domain.master.repository.CategoryRepository;
+import com.da.itdaing.domain.master.entity.Feature;
+import com.da.itdaing.domain.master.repository.FeatureRepository;
+import com.da.itdaing.domain.master.entity.Region;
+import com.da.itdaing.domain.master.repository.RegionRepository;
+import com.da.itdaing.domain.master.entity.Style;
+import com.da.itdaing.domain.master.repository.StyleRepository;
 import com.da.itdaing.domain.seller.entity.SellerProfile;
 import com.da.itdaing.domain.seller.repository.SellerProfileRepository;
 import com.da.itdaing.domain.user.entity.UserPrefCategory;
@@ -25,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -47,6 +50,9 @@ public class DevDataSeed implements CommandLineRunner {
     private final RegionRepository regionRepository;
     private final FeatureRepository featureRepository;
 
+    // Geo repos
+    private final ZoneAreaRepository zoneAreaRepository;
+
     // User repos
     private final UserRepository userRepository;
     private final UserPrefCategoryRepository userPrefCategoryRepository;
@@ -56,12 +62,16 @@ public class DevDataSeed implements CommandLineRunner {
     // Seller repos
     private final SellerProfileRepository sellerProfileRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) {
         log.info("===== [DevDataSeed] START =====");
         seedMaster();
+        seedAdmin();
         seedUsersAndPrefs();
         seedSellersAndProfile();
+        seedGeoAreas();
         log.info("===== [DevDataSeed] DONE =====");
     }
 
@@ -69,19 +79,13 @@ public class DevDataSeed implements CommandLineRunner {
        Master seed
        ========================= */
     private void seedMaster() {
-        // Category (CONSUMER / POPUP 양쪽 모두 심음)
+        // Category
         if (categoryRepository.count() == 0) {
-            List<String> consumerCats = List.of(
+            List<String> categories = List.of(
                 "패션", "뷰티", "음식", "건강", "공연/전시", "스포츠", "키즈", "아트", "굿즈", "반려동물"
             );
-            consumerCats.forEach(name -> categoryRepository.save(
-                Category.builder().name(name).type(CategoryType.CONSUMER).build()
-            ));
-            // 동일 명칭을 POPUP 타입으로도 심어두면 팝업 등록 필터에 바로 재사용 가능
-            consumerCats.forEach(name -> categoryRepository.save(
-                Category.builder().name(name).type(CategoryType.POPUP).build()
-            ));
-            log.info("Seeded {} categories (CONSUMER/POPUP)", consumerCats.size() * 2);
+            categories.forEach(name -> categoryRepository.save(Category.builder().name(name).build()));
+            log.info("Seeded {} categories", categories.size());
         }
 
         // Style
@@ -111,6 +115,28 @@ public class DevDataSeed implements CommandLineRunner {
     }
 
     /* =========================
+   Admin seed
+   ========================= */
+    private void seedAdmin() {
+        Users admin = userRepository.findByLoginId("admin").orElse(null);
+        if (admin == null) {
+            admin = userRepository.save(
+                Users.builder()
+                    .loginId("admin")
+                    .password(passwordEncoder.encode("admin!1234")) // ✅ 해시 저장
+                    .name("관리자")
+                    .nickname("슈퍼관리자")
+                    .email("admin@example.com")
+                    .role(UserRole.ADMIN)
+                    .build()
+            );
+            log.info("Seeded ADMIN: id={}, loginId={}", admin.getId(), admin.getLoginId());
+        }else {
+            log.info("ADMIN already exists. Leave password as-is (no change).");
+        }
+    }
+
+    /* =========================
        Users & Preferences seed
        ========================= */
     private void seedUsersAndPrefs() {
@@ -120,7 +146,7 @@ public class DevDataSeed implements CommandLineRunner {
             consumer = userRepository.save(
                 Users.builder()
                     .loginId("consumer1")
-                    .password("pass!1234") // 로컬용 더미
+                    .password(passwordEncoder.encode("pass!1234"))
                     .name("김소비")
                     .nickname("소비왕")
                     .email("consumer1@example.com")
@@ -132,19 +158,15 @@ public class DevDataSeed implements CommandLineRunner {
             log.info("Seeded CONSUMER user: id={}, loginId={}", consumer.getId(), consumer.getLoginId());
         }
 
-        // 선호 Category (최소 1~최대 4개) - CONSUMER 타입에서 상위 3개만 연결
+        // 선호 Category (최소 1~최대 4개) - 상위 3개 예시
         if (userPrefCategoryRepository.count() == 0) {
-            List<Category> consumerCats = categoryRepository.findAll().stream()
-                .filter(c -> c.getType() == CategoryType.CONSUMER)
-                .limit(3) // 1~4개 규칙 중 3개 예시
-                .toList();
-            for (Category c : consumerCats) {
-                userPrefCategoryRepository.save(UserPrefCategory.builder()
-                    .user(consumer)
-                    .category(c)
-                    .build());
+            List<Category> cats = categoryRepository.findAll().stream().limit(3).toList();
+            for (Category c : cats) {
+                userPrefCategoryRepository.save(
+                    UserPrefCategory.builder().user(consumer).category(c).build()
+                );
             }
-            log.info("Linked {} consumer category prefs to user {}", consumerCats.size(), consumer.getId());
+            log.info("Linked {} category prefs to user {}", cats.size(), consumer.getId());
         }
 
         // 선호 Style (상위 3개)
@@ -182,7 +204,7 @@ public class DevDataSeed implements CommandLineRunner {
             seller1 = userRepository.save(
                 Users.builder()
                     .loginId("seller1")
-                    .password("pass!1234")
+                    .password(passwordEncoder.encode("pass!1234"))
                     .name("박판매")
                     .nickname("팝업왕")
                     .email("seller1@example.com")
@@ -212,7 +234,7 @@ public class DevDataSeed implements CommandLineRunner {
             seller2 = userRepository.save(
                 Users.builder()
                     .loginId("seller2")
-                    .password("pass!1234")
+                    .password(passwordEncoder.encode("pass!1234"))
                     .name("이판매")
                     .nickname("굿즈장인")
                     .email("seller2@example.com")
@@ -221,5 +243,94 @@ public class DevDataSeed implements CommandLineRunner {
             );
             log.info("Seeded SELLER user (no profile): id={}, loginId={}", seller2.getId(), seller2.getLoginId());
         }
+    }
+
+    /* =========================
+       Geo: ZoneArea seed
+       ========================= */
+    private void seedGeoAreas() {
+        if (zoneAreaRepository.count() > 0) {
+            log.info("ZoneArea already seeded. Skip.");
+            return;
+        }
+
+        // Region 하나 골라 연결(없으면 null)
+        Region anyRegion = regionRepository.findAll().stream().findFirst().orElse(null);
+
+        // 폴리곤은 WGS84 [lng, lat] / 폐합(첫점=끝점)
+        String polyA = """
+            {"type":"Polygon","coordinates":[
+              [
+                [126.9768,37.5655],
+                [126.9800,37.5655],
+                [126.9800,37.5678],
+                [126.9768,37.5678],
+                [126.9768,37.5655]
+              ]
+            ]}
+            """;
+
+        String polyB = """
+            {"type":"Polygon","coordinates":[
+              [
+                [126.9815,37.5635],
+                [126.9845,37.5635],
+                [126.9845,37.5665],
+                [126.9815,37.5665],
+                [126.9815,37.5635]
+              ]
+            ]}
+            """;
+
+        String polyC = """
+            {"type":"Polygon","coordinates":[
+              [
+                [126.9730,37.5720],
+                [126.9765,37.5720],
+                [126.9765,37.5740],
+                [126.9730,37.5740],
+                [126.9730,37.5720]
+              ]
+            ]}
+            """;
+
+        ZoneArea a = ZoneArea.builder()
+            .region(anyRegion)
+            .name("A-구역(시청광장)")
+            .polygonGeoJson(polyA)
+            .status(AreaStatus.AVAILABLE)
+            .maxCapacity(120)
+            .notice("행사 다수, 소음 주의")
+            .build();
+
+        ZoneArea b = ZoneArea.builder()
+            .region(anyRegion)
+            .name("B-구역(명동입구)")
+            .polygonGeoJson(polyB)
+            .status(AreaStatus.AVAILABLE)
+            .maxCapacity(80)
+            .notice("보행량 많음, 전력제한 3kW")
+            .build();
+
+        ZoneArea c = ZoneArea.builder()
+            .region(anyRegion)
+            .name("C-구역(광화문)")
+            .polygonGeoJson(polyC)
+            .status(AreaStatus.UNAVAILABLE)
+            .maxCapacity(60)
+            .notice("공사 예정으로 임시 중단")
+            .build();
+
+        zoneAreaRepository.saveAll(List.of(a, b, c));
+
+        log.info("Seeded ZoneAreas: {}, {}, {}", a.getName(), b.getName(), c.getName());
+        log.info(" -> IDs: A={}, B={}, C={}", a.getId(), b.getId(), c.getId());
+    }
+
+
+    private boolean looksEncoded(String pw) {
+        if (pw == null) return false;
+        // BCrypt 해시 시작 패턴($2a, $2b, $2y)
+        return pw.startsWith("$2a$") || pw.startsWith("$2b$") || pw.startsWith("$2y$");
     }
 }

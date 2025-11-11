@@ -1,14 +1,16 @@
 package com.da.itdaing.domain.social;
 
 import com.da.itdaing.domain.common.enums.UserRole;
-import com.da.itdaing.domain.geo.ZoneArea;
-import com.da.itdaing.domain.geo.ZoneAreaRepository;
-import com.da.itdaing.domain.geo.ZoneCell;
-import com.da.itdaing.domain.geo.ZoneCellRepository;
-import com.da.itdaing.domain.master.Region;
-import com.da.itdaing.domain.master.RegionRepository;
-import com.da.itdaing.domain.popup.Popup;
-import com.da.itdaing.domain.popup.PopupRepository;
+import com.da.itdaing.domain.geo.entity.ZoneArea;
+import com.da.itdaing.domain.geo.repository.ZoneAreaRepository;
+import com.da.itdaing.domain.geo.entity.ZoneCell;
+import com.da.itdaing.domain.geo.repository.ZoneCellRepository;
+import com.da.itdaing.domain.master.entity.Region;
+import com.da.itdaing.domain.master.repository.RegionRepository;
+import com.da.itdaing.domain.popup.entity.Popup;
+import com.da.itdaing.domain.popup.repository.PopupRepository;
+import com.da.itdaing.domain.social.entity.Review;
+import com.da.itdaing.domain.social.repository.ReviewRepository;
 import com.da.itdaing.domain.user.repository.UserRepository;
 import com.da.itdaing.domain.user.entity.Users;
 import com.da.itdaing.testsupport.JpaSliceTest;
