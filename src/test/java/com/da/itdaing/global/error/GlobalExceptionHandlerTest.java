@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -19,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * GlobalExceptionHandler 테스트
  */
 @WebMvcTest(TestController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class GlobalExceptionHandlerTest {
 
     @Autowired
@@ -32,7 +34,7 @@ class GlobalExceptionHandlerTest {
     void whenValidationFails_thenReturnsApiErrorResponse() throws Exception {
         // given
         Map<String, String> invalidRequest = new HashMap<>();
-        invalidRequest.put("name", ""); // NotBlank 위반
+        invalidRequest.put("name", ""); // NotBlank 위반 + Size 위반
         invalidRequest.put("email", "invalid-email"); // Email 형식 위반
 
         // when & then
@@ -48,7 +50,7 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.error.code").value("E001"))
                 .andExpect(jsonPath("$.error.message").value("입력값이 올바르지 않습니다"))
                 .andExpect(jsonPath("$.error.fieldErrors").isArray())
-                .andExpect(jsonPath("$.error.fieldErrors.length()").value(2));
+               .andExpect(jsonPath("$.error.fieldErrors.length()").value(3));
     }
 
     @Test

@@ -1,16 +1,8 @@
-name: Publish OpenAPI to GitHub Pages
+name: (legacy) Publish OpenAPI to GitHub Pages
 
 on:
+  # 수동으로만 실행되도록 전환 (자동 푸시는 publish-docs.yml 단일 워크플로 사용)
   workflow_dispatch:
-  push:
-    branches: [ backend, main, master ]
-    paths:
-      - 'src/**'
-      - 'docs/**'
-      - 'README.md'
-      - 'build.gradle.kts'
-      - 'settings.gradle.kts'
-      - '.github/workflows/publish-openapi.yml'
 
 # Ensure the GITHUB_TOKEN can push to gh-pages
 permissions:
@@ -46,7 +38,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Generate OpenAPI docs
-        run: ./gradlew --no-daemon clean generateOpenApiDocs
+        run: |
+          VER=$(./gradlew properties -q | grep '^version:' | awk '{print $2}')
+          export APP_VERSION=${VER}
+          ./gradlew --no-daemon clean generateOpenApiDocs
 
       - name: Prepare static Swagger site
         run: |

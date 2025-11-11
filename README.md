@@ -138,21 +138,24 @@ export JWT_REFRESH_TOKEN_EXPIRATION=1209600000
 
 - 문서: `docs/IDE_SETUP.md` 참조 (IntelliJ / Eclipse 세팅, ProxyJump, 원격 디버그)
 
-## OpenAPI/Swagger를 GitHub Pages로 공개하기
+## OpenAPI / Swagger 문서 공개 및 버전 자동화
 
 본 레포지토리는 OpenAPI 문서를 Gradle 태스크로 생성하고, GitHub Pages(gh-pages 브랜치)에 정적 Swagger UI를 배포하는 워크플로를 포함합니다.
 
 ### 1) 문서 생성 (로컬)
 
 ```bash
-./gradlew generateOpenApiDocs
-# 산출물: build/openapi/openapi.yaml
+APP_VERSION=1.1.0 ./gradlew generateOpenApiDocs
+# 산출물: build/openapi/openapi.yaml (info.version = 1.1.0)
 ```
+
+환경변수 `APP_VERSION`을 지정하지 않으면 기본 `v1.0.0`이 사용됩니다. 동적으로 버전을 관리하여 문서와 배포 아티팩트 싱크를 유지하세요.
 
 ### 2) GitHub Pages 퍼블리시 (CI)
 
 - 워크플로: `.github/workflows/publish-openapi.yml`
 - 트리거: 기본 push 및 수동 실행(workflow_dispatch)
+- 버전: `APP_VERSION` 환경 변수로 주입 가능
 - 첫 실행 후 GitHub Pages 설정에서 Source를 `gh-pages` 브랜치로 지정하세요.
 
 배포 주소(예시):
@@ -181,7 +184,43 @@ ssh-keygen -t ed25519 -C "gh-pages deploy" -f gh-pages -N ""
 
 ## 라이선스
 
-사내/프로젝트 정책에 따릅니다. 필요 시 OSS 라이선스 명시 블록 추가 예정.
+사내/프로젝트 정책에 따릅니다.
 
----
-문의 / 개선 제안: Issue 등록 또는 담당자에게 직접 전달.
+## CI (GitHub Actions)
+
+### Active Workflows
+
+| Workflow | 목적 | 트리거 |
+|----------|------|--------|
+| `be-ci.yml` | 백엔드 테스트 (Gradle) | PR(dev/integration, main) |
+| `fe-ci.yml` | 프론트엔드 lint / typecheck / test / build | PR(dev/integration, main) |
+| `contract-check.yml` | OpenAPI 스펙 diff / breaking changes 감지 | PR(dev/integration, main) |
+| `be-integration.yml` | 선택적 통합(MySQL service) 테스트 | PR + 수동 |
+| `publish-openapi.yml` | OpenAPI 스펙 GitHub Pages 배포 | push + 수동 |
+| `publish-swagger.yml` | 수동 Swagger UI 재배포 | 수동(workflow_dispatch) |
+
+`ci.yml` 통합 워크플로는 중복/충돌로 제거되었습니다.
+
+백엔드 기본 CI는 모든 테스트를 실행합니다. 도메인별 테스트를 부분적으로 실행하려면 아래 태스크를 활용하십시오:
+
+```bash
+./gradlew testUser
+./gradlew testMaster
+./gradlew testGeo
+```
+
+### gitmoji 커밋 컨벤션
+
+- 커밋 메시지 앞에 gitmoji 사용 권장(예: ✨, 🐛, 🔧 등). 예시:
+	- ✨ feat: 캐러셀 반응형 개선
+	- 🐛 fix: 모바일 우측 overflow 수정
+	- 🧹 refactor: 컴포넌트 분리
+	- 📝 docs: README CI 배지 추가
+
+간편 입력 도구:
+
+```bash
+npx gitmoji -c
+```
+
+직접 이모지 코드로도 가능: `git commit -m ":sparkles: feat: adjust breakpoints for hero carousel"`

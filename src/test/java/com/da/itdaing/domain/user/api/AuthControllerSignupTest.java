@@ -83,6 +83,7 @@ class AuthControllerSignupTest {
             .ageGroup(20)
             .interestCategoryIds(List.of(101L, 105L))
             .styleIds(List.of(12L, 15L, 19L))
+            .featureIds(List.of(1L))
             .regionIds(List.of(2L))
             .build();
 
@@ -213,6 +214,7 @@ class AuthControllerSignupTest {
             .ageGroup(20)
             .interestCategoryIds(List.of(101L, 105L))
             .styleIds(List.of(12L, 15L, 19L))
+            .featureIds(List.of(1L))
             .regionIds(List.of(2L))
             .build();
 
@@ -304,6 +306,7 @@ class AuthControllerSignupTest {
             .ageGroup(20)
             .interestCategoryIds(List.of(999L, 1000L))  // 존재하지 않는 ID
             .styleIds(List.of(12L, 15L, 19L))
+            .featureIds(List.of(1L))
             .regionIds(List.of(2L))
             .build();
 
@@ -337,6 +340,7 @@ class AuthControllerSignupTest {
             .ageGroup(20)
             .interestCategoryIds(List.of(101L, 105L))
             .styleIds(List.of(999L, 1000L))  // 존재하지 않는 ID
+            .featureIds(List.of(1L))
             .regionIds(List.of(2L))
             .build();
 
@@ -370,6 +374,7 @@ class AuthControllerSignupTest {
             .ageGroup(20)
             .interestCategoryIds(List.of(101L, 105L))
             .styleIds(List.of(12L, 15L, 19L))
+            .featureIds(List.of(1L))
             .regionIds(List.of(999L))  // 존재하지 않는 ID
             .build();
 

@@ -24,8 +24,12 @@ springdoc:
     api-docs:
         enabled: true
     swagger-ui:
-        enabled: false  # UI는 필요 없음(우린 스펙 파일만 뽑을 거라서)
+        enabled: false  # UI는 필요 없음(스펙 파일만 생성)
 
+
+# OpenAPI 버전 자동 주입(환경변수 APP_VERSION 우선). OpenApiConfig에서 @Value("${app.version}")로 사용.
+app:
+    version: ${APP_VERSION:v1.0.0}
 logging:
     level:
         org.springframework: WARN

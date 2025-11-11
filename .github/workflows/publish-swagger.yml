@@ -1,8 +1,8 @@
-name: Publish Swagger to GitHub Pages (manual)
+name: (legacy) Publish Swagger to GitHub Pages
 permissions:
   contents: write
 on:
-  # 자동 실행을 비활성화하고 수동으로만 실행하도록 변경
+  # 수동 실행만 허용 (자동 푸시는 통합 publish-docs.yml 사용)
   workflow_dispatch:
 
 concurrency:
@@ -53,41 +53,41 @@ jobs:
 
             # springdoc 플러그인이 앱을 잠깐 띄워서 /v3/api-docs.yaml을 파일로 생성
             - name: Generate OpenAPI spec
-              run: ./gradlew --no-daemon clean generateOpenApiDocs
+              run: |
+                VER=$(./gradlew properties -q | grep '^version:' | awk '{print $2}')
+                export APP_VERSION=${VER}
+                ./gradlew --no-daemon generateOpenApiDocs
 
             - name: Prepare static Swagger UI
               run: |
-                mkdir -p public
-                cp build/openapi/openapi.yaml public/openapi.yaml
-                cat > public/index.html <<'EOF'
-                <!doctype html>
-                <html>
-                <head>
-                  <meta charset="utf-8"/>
-                  <title>ItDaIng API Docs</title>
-                  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-                  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
-                </head>
-                <body>
-                  <div id="swagger-ui"></div>
-                  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-                  <script>
-                    window.onload = () => {
-                      window.ui = SwaggerUIBundle({
-                        url: './openapi.yaml',
-                        dom_id: '#swagger-ui'
-                      });
-                    };
-                  </script>
-                </body>
-                </html>
-                EOF
-
-            - name: Upload OpenAPI artifact
-              uses: actions/upload-artifact@v4
-              with:
-                name: openapi.yaml
-                path: public/openapi.yaml
+                  mkdir -p public
+                  cp build/openapi/openapi.yaml public/
+                  cat > public/index.html <<'EOF'
+                  <!doctype html>
+                  <html>
+                  <head>
+                    <meta charset="utf-8"/>
+                    <title>DA-ITDAING API Docs</title>
+                    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+                    <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
+                    <style>body{margin:0} .topbar{display:none}</style>
+                  </head>
+                  <body>
+                    <div id="swagger-ui"></div>
+                    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+                    <script>
+                      window.onload = () => {
+                        fetch('./openapi.yaml')
+                          .then(r => r.json())
+                          .then(spec => {
+                            document.title = `${(spec.info?.title||'API Docs')} - ${(spec.info?.version||'v')}`;
+                            window.ui = SwaggerUIBundle({ spec, dom_id: '#swagger-ui' });
+                          });
+                      };
+                    </script>
+                  </body>
+                  </html>
+                  EOF
 
             # If a deploy key is configured, prefer it (works even when org restricts GITHUB_TOKEN writes)
             - name: Deploy to GitHub Pages (deploy key)

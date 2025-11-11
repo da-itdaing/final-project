@@ -7,10 +7,14 @@ import com.da.itdaing.domain.seller.service.SellerProfileService;
 import com.da.itdaing.support.MvcNoSecurityTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import com.da.itdaing.global.error.GlobalExceptionHandler;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -28,6 +32,19 @@ class SellerProfileControllerTest extends MvcNoSecurityTest {
 
     @Autowired MockMvc mockMvc;
     @Autowired ObjectMapper objectMapper;
+
+    // 컨트롤러를 직접 standaloneSetup으로 등록해 핸들러 매핑 문제를 회피
+    @Autowired SellerProfileController sellerProfileController;
+
+    @BeforeEach
+    void setUpStandaloneMockMvc() {
+        this.mockMvc = MockMvcBuilders.standaloneSetup(sellerProfileController)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
+        if (this.objectMapper == null) {
+            this.objectMapper = new ObjectMapper();
+        }
+    }
 
     @MockitoBean
     private SellerProfileService sellerProfileService;
