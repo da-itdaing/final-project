@@ -106,3 +106,12 @@
    - 잘못된 토큰으로 401 응답 확인
    - 이메일 중복으로 409 응답 확인
 
+## GitHub Actions (OpenAPI 배포) 메모
+
+문서 업데이트와 함께 OpenAPI 스펙을 GitHub Pages로 배포하는 CI가 정비되었습니다.
+
+- 워크플로: `.github/workflows/publish-openapi.yml`
+- 주요 개선점: Concurrency 그룹 추가(중복 배포 방지), Gradle Wrapper 검증, OpenAPI 아티팩트 업로드
+- 수동 워크플로: `.github/workflows/publish-swagger.yml` (비상 시 수동 실행)
+- 실행 후 Pages 설정: Source → `gh-pages` 브랜치
+

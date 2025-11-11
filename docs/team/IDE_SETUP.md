@@ -16,6 +16,13 @@
 - `dev`: IDE에서 RDS/S3에 붙는 개발용. 환경변수로 자격/엔드포인트 주입.
 - `prod`: EC2 운영용. 포트 80, 환경변수 기반 설정.
 
+추가: OpenAPI 스펙 생성을 위한 `openapi` 프로파일은 CI에서만 사용되며, H2 + 보안 완화 설정으로 앱을 짧게 부팅해 `/v3/api-docs.yaml`을 추출합니다. 로컬에서도 다음으로 실행/생성할 수 있습니다.
+
+```bash
+./gradlew generateOpenApiDocs
+# 산출물: build/openapi/openapi.yaml
+```
+
 ### 2.1 local 프로파일 (가장 간편)
 - Run Configuration:
   - Main class: `com.da.itdaing.ItdaingServerApplication`
@@ -102,3 +109,19 @@ ssh -J ubuntu@<bastion-ip> ubuntu@<private-ec2-ip> -L 5005:127.0.0.1:5005 -N
 
 - `docs/DEPLOY_EC2.md` 참고 (systemd, 환경변수 정리)
 - 단순 배포는 로컬/CI에서 jar 빌드 후 bastion을 통해 private-EC2로 전송하는 방식을 권장합니다.
+
+## 7) 커밋 컨벤션 (선택) – gitmoji-cli
+
+일관된 커밋 메시지 작성을 위해 [gitmoji-cli](https://github.com/carloscuesta/gitmoji-cli)를 사용할 수 있습니다.
+
+```bash
+npm i -g gitmoji-cli
+gitmoji -c  # 인터랙티브 커밋
+```
+
+추천 이모지 예시:
+- :wrench: 워크플로/설정 수정
+- :sparkles: 기능 추가
+- :bug: 버그 수정
+- :white_check_mark: 테스트 추가/수정
+- :memo: 문서 수정

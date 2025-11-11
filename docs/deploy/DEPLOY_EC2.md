@@ -105,6 +105,35 @@ journalctl -u itdaing -f
 
 ## 6) 보안 메모
 
-- 포트 80 바인딩은 루트 권한 요구될 수 있음. 8080에서 실행하고 ALB/Nginx로 80을 종단하는 구성을 권장.
-- 운영 DB에 대해 `ddl-auto=create`는 데이터 손실 위험이 큼. `update` 또는 `validate` 사용을 권장.
-- AWS 키는 환경변수나 Instance Profile로만 주입하고, 코드/설정 파일에 하드코딩하지 마세요.
+ - 포트 80 바인딩은 루트 권한 요구될 수 있음. 8080에서 실행하고 ALB/Nginx로 80을 종단하는 구성을 권장.
+ - 운영 DB에 대해 `ddl-auto=create`는 데이터 손실 위험이 큼. `update` 또는 `validate` 사용을 권장.
+ - AWS 키는 환경변수나 Instance Profile로만 주입하고, 코드/설정 파일에 하드코딩하지 마세요.
+
+## 7) 배포 체크리스트
+
+| 단계 | 항목 | 통과 조건 |
+|------|------|-----------|
+| Build | Gradle build | `BUILD SUCCESSFUL` 출력 |
+| Flyway | Migration | 첫 기동 시 `Successfully applied` 로그 |
+| Port | Bind | `Listening on port 80/8080` 로그 |
+| Health | Actuator | `GET /actuator/health` 200 OK |
+| Security | 로그인 | `/api/auth/login` JWT 토큰 발급 |
+| Docs | OpenAPI | `/v3/api-docs` 200 + JSON 반환 |
+
+## 8) 무중단 배포 (간단 전략)
+
+1. 새 버전 JAR 업로드: `app-v2.jar`
+2. systemd 신규 서비스 파일 작성: `itdaing-v2.service` (포트 8081 등)
+3. 헬스/Smoke 테스트 통과 후 ALB/Nginx 업스트림 포트 전환
+4. 기존 서비스 종료 및 교체
+
+## 9) 문제 해결 FAQ
+
+| 증상 | 원인 후보 | 해결 |
+|------|-----------|------|
+| 502 Bad Gateway | 앱 다운 / 포트 미스매치 | `journalctl -u itdaing -f` 확인, 포트 설정 재검증 |
+| DB 연결 실패 | 보안 그룹 / 엔드포인트 오타 | RDS SG에 EC2 인바운드 허용, URL 재확인 |
+| 403/401 반복 | JWT secret 불일치 | 환경변수 `JWT_SECRET` 길이/값 통일 |
+| 마이그레이션 실패 | Flyway 스크립트 충돌 | 버전 번호 겹침 여부 확인(V###) |
+| OOM 발생 | 힙 사이즈 부족 | `ExecStart`에 `-Xms256m -Xmx512m` 등 튜닝 |
+

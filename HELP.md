@@ -1,5 +1,7 @@
 # Getting Started
 
+> Quick reference for common build, test, and documentation tasks.
+
 ### Reference Documentation
 For further reference, please consider the following sections:
 
@@ -44,6 +46,39 @@ This project uses [Testcontainers at development time](https://docs.spring.io/sp
 Testcontainers has been configured to use the following Docker images:
 
 * [`mysql:latest`](https://hub.docker.com/_/mysql)
+
+### OpenAPI Generation (CI & Local)
+
+CI uses the Gradle task `generateOpenApiDocs` (profile `openapi`) to produce `build/openapi/openapi.yaml` which is published to GitHub Pages. Run locally:
+
+```bash
+./gradlew generateOpenApiDocs
+open build/openapi/openapi.yaml
+```
+
+### Common Gradle Commands
+
+```bash
+./gradlew clean build         # Full build + tests
+./gradlew test                # Run tests only
+./gradlew testMaster          # Domain-specific test task example
+./gradlew bootRun             # Run with default profile (local)
+./gradlew generateOpenApiDocs # Produce OpenAPI spec
+```
+
+### Troubleshooting Quick Notes
+
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| Wrapper validation fails | Corrupted gradle-wrapper.jar | Re-create wrapper (`./gradlew wrapper --gradle-version <ver>`) |
+| OpenAPI task timeout | App cold start / heavy migrations | Increase `waitTimeInSeconds` in `openApi {}` block |
+| H2 schema errors | Flyway enabled on openapi profile | Ensure `flyway.enabled=false` in `application-openapi.yml` |
+| 401 on public endpoint | Security config regression | Verify `SecurityConfig` permitAll matchers |
+
+### Security Reminder
+
+Never commit production secrets. Use environment variables or GitHub Actions encrypted secrets.
+
 
 Please review the tags of the used images and set them to the same as you're running in production.
 

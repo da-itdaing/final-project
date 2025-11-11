@@ -5,9 +5,14 @@ on:
   # 수동 실행만 허용 (자동 푸시는 통합 publish-docs.yml 사용)
   workflow_dispatch:
 
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: true
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       HAS_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY != '' }}
       # App runtime env for generating OpenAPI
@@ -23,7 +28,11 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
-                  lfs: true
+                lfs: true
+
+            # Validate Gradle Wrapper for supply-chain safety
+            - name: Validate Gradle Wrapper
+              uses: gradle/actions/wrapper-validation@v3
 
             - name: Inspect wrapper files
               run: |
@@ -36,11 +45,11 @@ jobs:
                   distribution: temurin
                   java-version: '21'
 
+            - name: Setup Gradle
+              uses: gradle/actions/setup-gradle@v3
+
             - name: Grant execute permission for Gradle
               run: chmod +x ./gradlew
-
-            - name: Build (compile only)
-              run: ./gradlew --no-daemon clean classes
 
             # springdoc 플러그인이 앱을 잠깐 띄워서 /v3/api-docs.yaml을 파일로 생성
             - name: Generate OpenAPI spec

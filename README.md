@@ -1,10 +1,36 @@
 # itdaing-server
 
-Spring Boot 3.5 (Java 21) 기반 백엔드 서비스.
+> Spring Boot 3.5 / Java 21 기반 백엔드 서비스. Pop-up 스토어 검색 · 추천 · 운영을 위한 도메인 집합을 제공합니다.
 
-- 빌드 도구: Gradle
+**Last Updated:** 2025-11-09
+
+## Table of Contents
+1. [개요 & 기술 스택](#개요--기술-스택)
+2. [프로파일 개요](#프로파일-개요)
+3. [빠른 시작](#빠른-시작-로컬)
+4. [JWT 설정](#jwt-설정-메모)
+5. [테스트 실행](#테스트)
+6. [OpenAPI / Swagger 배포](#openapiswagger를-github-pages로-공개하기)
+7. [EC2 배포](#ec2-배포-docker-없이)
+8. [IDE 가이드](#ide-실행-가이드)
+9. [도메인 구조 요약](#도메인-구조-요약)
+10. [품질 & 규약](#품질--규약)
+11. [문서 네비게이션](#문서-네비게이션)
+12. [라이선스](#라이선스)
+
+## 개요 & 기술 스택
+
+- 빌드 도구: Gradle Kotlin DSL
 - JDK: 21 (Temurin 권장)
-- 주요 라이브러리: Spring Web, Security, Data JPA, Flyway, H2/MySQL, springdoc-openapi, jjwt, QueryDSL, MapStruct
+- 주요 라이브러리:
+	- Spring Boot: Web, Security, Data JPA, Validation, Actuator
+	- Infra: Flyway, H2/MySQL, AWS SDK (S3) 예정
+	- API 문서: springdoc-openapi + Swagger UI
+	- Auth: jjwt (HS256), Spring Security
+	- Query: QueryDSL (Jakarta), MapStruct (DTO 매핑)
+	- Test: JUnit 5, AssertJ
+
+아키텍처는 **도메인 모듈화 패키지** (domain.user, domain.master, domain.popup …) 패턴을 따르며 서비스 / 리포지토리 / DTO / 컨트롤러를 계층적으로 구성합니다.
 
 ## 프로파일 개요
 
@@ -39,8 +65,24 @@ SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - 헬스 체크: http://localhost:8080/actuator/health
+	- liveness: `/actuator/health` / readiness: 향후 커스터마이즈 가능
 
 루트 "/"는 인증 필요로 401이 정상입니다. 공개 엔드포인트는 `/api/master/**`(GET), `/api/auth/**`, `/v3/api-docs/**`, `/swagger-ui/**`, `/actuator/health` 입니다.
+
+## 도메인 구조 요약
+
+| 도메인 | 주요 엔티티 | 주요 기능 |
+|--------|-------------|-----------|
+| master | Region / Style / Category / Feature | 마스터 데이터 조회 |
+| user   | Users / ConsumerProfile / SellerProfile / Preferences | 가입, 로그인, 프로필, 선호도 |
+| popup  | Popup / PopupImage / PopupCategory / PopupFeature | 팝업 스토어 등록/관리 |
+| social | Wishlist / Review / ReviewImage | 사용자 상호작용 |
+| reco   | Daily*Recommendation / UserRecoDismissal | 추천 결과 저장 |
+| metric | EventLog / DailyMetric* | 지표 수집 |
+| audit  | ApprovalRecord | 승인 / 변경 기록 |
+| messaging | Message / Attachment / Announcement | 알림/메시지 전송 |
+
+세부 테스트 태스크는 `docs/DOMAIN_TESTS.md` 참고.
 
 ## JWT 설정 메모
 
@@ -66,6 +108,26 @@ export JWT_REFRESH_TOKEN_EXPIRATION=1209600000
 ```
 
 일부 컨트롤러 테스트(판매자 프로필) 실패 케이스가 있으며, 실행에는 영향을 주지 않습니다. 필요 시 별도 이슈로 보정 가능합니다.
+
+## 품질 & 규약
+
+- 코드 스타일: 기본 IntelliJ + `-parameters` 컴파일 옵션 사용 (리플렉션 파라미터 이름 유지)
+- Null 처리: Controller → Service 간 DTO/Optional 명확화. Optional은 Service 레이어 내부에서만 사용하도록 제한 예정.
+- 에러 응답: 표준 코드 (COMMON-*, AUTH-*) 사용. 상세 표는 `docs/JWT_AUTH_IMPLEMENTATION_SUMMARY.md` / `docs/AUTH_SWAGGER_UPDATE_SUMMARY.md` 참고.
+- 마이그레이션: Flyway baseline 후 변경 스크립트 (`db/migration/V***__desc.sql`).
+- 보안: 운영 secret/JWT key는 절대 커밋 금지. 로컬/테스트는 안전한 placeholder.
+
+## 문서 네비게이션
+
+| 문서 | 목적 |
+|------|------|
+| `docs/IDE_SETUP.md` | IDE 및 원격 디버깅 설정 |
+| `docs/DEPLOY_EC2.md` | Docker 없이 EC2 배포 절차 |
+| `docs/DOMAIN_TESTS.md` | 도메인별 테스트 태스크 및 규칙 |
+| `docs/JWT_AUTH_IMPLEMENTATION_SUMMARY.md` | JWT & 보안 구현 요약 |
+| `docs/AUTH_SWAGGER_UPDATE_SUMMARY.md` | Swagger 문서 업데이트 내역 |
+| `docs/AUTHCONTROLLER_RECOVERY_REPORT.md` | AuthController 복구 작업 보고 |
+| `docs/CONTROLLER_AUDIT_EMPTY_BODY_REPORT.md` | 컨트롤러 응답 본문 감사 결과 |
 
 ## EC2 배포 (Docker 없이)
 
