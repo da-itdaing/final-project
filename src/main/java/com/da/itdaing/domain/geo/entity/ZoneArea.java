@@ -1,44 +1,52 @@
+// src/main/java/com/da/itdaing/domain/geo/entity/ZoneArea.java
 package com.da.itdaing.domain.geo.entity;
 
+import com.da.itdaing.domain.common.enums.AreaStatus;
 import com.da.itdaing.domain.master.entity.Region;
 import com.da.itdaing.global.jpa.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-/**
- * 존 영역 (Zone Area)
- * - 특정 지역(구) 내의 세부 영역
- */
 @Entity
-@Table(
-    name = "zone_area",
-    indexes = @Index(name = "idx_zone_area_region", columnList = "region_id")
-)
+@Table(name = "zone_area",
+    indexes = @Index(name = "idx_zone_area_region", columnList = "region_id"))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ZoneArea extends BaseTimeEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 선택: 지역 마스터 연결 유지
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "region_id", nullable = false)
+    @JoinColumn(name = "region_id")
     private Region region;
 
     @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    @Column(name = "geometry_data", columnDefinition = "TEXT")
-    private String geometryData;
+    /** 관리자 저장: 폴리곤 GeoJSON (WGS84, lng/lat) */
+    @Column(name = "polygon_geojson", columnDefinition = "TEXT")
+    private String polygonGeoJson;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 20, nullable = false)
+    private AreaStatus status = AreaStatus.AVAILABLE;
+
+    @Column(name = "max_capacity")
+    private Integer maxCapacity;
+
+    @Column(name = "notice", length = 1000)
+    private String notice;
 
     @Builder
-    public ZoneArea(Region region, String name, String geometryData) {
+    public ZoneArea(Region region, String name, String polygonGeoJson,
+                    AreaStatus status, Integer maxCapacity, String notice) {
         this.region = region;
         this.name = name;
-        this.geometryData = geometryData;
+        this.polygonGeoJson = polygonGeoJson;
+        this.status = status != null ? status : AreaStatus.AVAILABLE;
+        this.maxCapacity = maxCapacity;
+        this.notice = notice;
     }
 }

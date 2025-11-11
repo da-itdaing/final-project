@@ -1,6 +1,9 @@
 package com.da.itdaing.config;
 
+import com.da.itdaing.domain.common.enums.AreaStatus;
 import com.da.itdaing.domain.common.enums.UserRole;
+import com.da.itdaing.domain.geo.entity.ZoneArea;
+import com.da.itdaing.domain.geo.repository.ZoneAreaRepository;
 import com.da.itdaing.domain.master.entity.Category;
 import com.da.itdaing.domain.master.repository.CategoryRepository;
 import com.da.itdaing.domain.master.entity.Feature;
@@ -47,6 +50,9 @@ public class DevDataSeed implements CommandLineRunner {
     private final RegionRepository regionRepository;
     private final FeatureRepository featureRepository;
 
+    // Geo repos
+    private final ZoneAreaRepository zoneAreaRepository;
+
     // User repos
     private final UserRepository userRepository;
     private final UserPrefCategoryRepository userPrefCategoryRepository;
@@ -65,6 +71,7 @@ public class DevDataSeed implements CommandLineRunner {
         seedAdmin();
         seedUsersAndPrefs();
         seedSellersAndProfile();
+        seedGeoAreas();
         log.info("===== [DevDataSeed] DONE =====");
     }
 
@@ -237,6 +244,89 @@ public class DevDataSeed implements CommandLineRunner {
             log.info("Seeded SELLER user (no profile): id={}, loginId={}", seller2.getId(), seller2.getLoginId());
         }
     }
+
+    /* =========================
+       Geo: ZoneArea seed
+       ========================= */
+    private void seedGeoAreas() {
+        if (zoneAreaRepository.count() > 0) {
+            log.info("ZoneArea already seeded. Skip.");
+            return;
+        }
+
+        // Region 하나 골라 연결(없으면 null)
+        Region anyRegion = regionRepository.findAll().stream().findFirst().orElse(null);
+
+        // 폴리곤은 WGS84 [lng, lat] / 폐합(첫점=끝점)
+        String polyA = """
+            {"type":"Polygon","coordinates":[
+              [
+                [126.9768,37.5655],
+                [126.9800,37.5655],
+                [126.9800,37.5678],
+                [126.9768,37.5678],
+                [126.9768,37.5655]
+              ]
+            ]}
+            """;
+
+        String polyB = """
+            {"type":"Polygon","coordinates":[
+              [
+                [126.9815,37.5635],
+                [126.9845,37.5635],
+                [126.9845,37.5665],
+                [126.9815,37.5665],
+                [126.9815,37.5635]
+              ]
+            ]}
+            """;
+
+        String polyC = """
+            {"type":"Polygon","coordinates":[
+              [
+                [126.9730,37.5720],
+                [126.9765,37.5720],
+                [126.9765,37.5740],
+                [126.9730,37.5740],
+                [126.9730,37.5720]
+              ]
+            ]}
+            """;
+
+        ZoneArea a = ZoneArea.builder()
+            .region(anyRegion)
+            .name("A-구역(시청광장)")
+            .polygonGeoJson(polyA)
+            .status(AreaStatus.AVAILABLE)
+            .maxCapacity(120)
+            .notice("행사 다수, 소음 주의")
+            .build();
+
+        ZoneArea b = ZoneArea.builder()
+            .region(anyRegion)
+            .name("B-구역(명동입구)")
+            .polygonGeoJson(polyB)
+            .status(AreaStatus.AVAILABLE)
+            .maxCapacity(80)
+            .notice("보행량 많음, 전력제한 3kW")
+            .build();
+
+        ZoneArea c = ZoneArea.builder()
+            .region(anyRegion)
+            .name("C-구역(광화문)")
+            .polygonGeoJson(polyC)
+            .status(AreaStatus.UNAVAILABLE)
+            .maxCapacity(60)
+            .notice("공사 예정으로 임시 중단")
+            .build();
+
+        zoneAreaRepository.saveAll(List.of(a, b, c));
+
+        log.info("Seeded ZoneAreas: {}, {}, {}", a.getName(), b.getName(), c.getName());
+        log.info(" -> IDs: A={}, B={}, C={}", a.getId(), b.getId(), c.getId());
+    }
+
 
     private boolean looksEncoded(String pw) {
         if (pw == null) return false;

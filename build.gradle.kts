@@ -45,6 +45,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")   // Bean Validation
     implementation("org.springframework.boot:spring-boot-starter-actuator")     // /actuator
 
+    implementation("org.hibernate.orm:hibernate-spatial:6.6.29.Final")   // 네 로그의 hibernate-core 버전에 맞춤
+    implementation("org.locationtech.jts:jts-core:1.19.0")
+
     // --- OpenAPI (Swagger UI)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 

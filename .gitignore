@@ -19,6 +19,8 @@ bin/
 *.iml
 *.ipr
 out/
+/out/
+/**/out/
 
 ### NetBeans ###
 /nbproject/private/
@@ -85,3 +87,4 @@ gh-pages.pub
 uploads/
 tmp/
 temp/
+var/
