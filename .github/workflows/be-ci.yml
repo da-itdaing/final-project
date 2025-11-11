@@ -14,7 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -24,4 +26,4 @@ jobs:
       - name: Gradle Test
         run: |
           ./gradlew --version
-          ./gradlew clean test -i
+          ./gradlew test -i

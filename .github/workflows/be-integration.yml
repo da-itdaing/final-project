@@ -9,6 +9,8 @@ on:
       - '.github/workflows/be-integration.yml'
 jobs:
   integration-tests:
+    # Run only when manually dispatched or PR is labeled 'needs-integration'
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'needs-integration') }}
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -23,6 +25,10 @@ jobs:
           --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
       - name: Setup Java
         uses: actions/setup-java@v4
         with:

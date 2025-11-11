@@ -12,7 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
+      - name: Validate Gradle Wrapper
+        uses: gradle/actions/wrapper-validation@v3
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -36,7 +38,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install redocly CLI & diff
+      - name: OpenAPI diff (npx)
         run: |
-          npm i -g @redocly/cli
-          redocly diff openapi-base.yaml openapi-pr.yaml --fail-on='breaking-changes' || { echo 'OpenAPI breaking changes detected'; exit 1; }
+          npx -y @redocly/cli@latest diff openapi-base.yaml openapi-pr.yaml --fail-on='breaking-changes' || { echo 'OpenAPI breaking changes detected'; exit 1; }

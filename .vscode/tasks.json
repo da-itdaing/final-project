@@ -1,0 +1,85 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "BE: test",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["test", "-i"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "BE: integration tests",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["test", "-i", "-Pintegration"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "BE: generate OpenAPI",
+      "type": "shell",
+      "command": "./gradlew",
+      "args": ["--no-daemon", "clean", "generateOpenApiDocs"],
+      "group": "build",
+      "problemMatcher": []
+    },
+
+    {
+      "label": "FE: install (pnpm)",
+      "type": "shell",
+      "command": "bash",
+      "args": ["-lc", "corepack enable && corepack prepare pnpm@9.15.0 --activate && pnpm install --frozen-lockfile"],
+      "options": { "cwd": "itdaing-web" },
+      "problemMatcher": []
+    },
+    {
+      "label": "FE: lint",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["lint"],
+      "options": { "cwd": "itdaing-web" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "FE: typecheck",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["typecheck"],
+      "options": { "cwd": "itdaing-web" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "FE: test",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["test"],
+      "options": { "cwd": "itdaing-web" },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "FE: build",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["build"],
+      "options": { "cwd": "itdaing-web" },
+      "group": "build",
+      "problemMatcher": []
+    },
+
+    {
+      "label": "Docs: build & assemble site",
+      "type": "shell",
+      "command": "bash",
+      "args": [
+        "-lc",
+        "export SPRING_PROFILES_ACTIVE=openapi; export JWT_SECRET=ci-docs-secret-placeholder-DO-NOT-USE-IN-PROD; VER=$(./gradlew properties -q | grep '^version:' | awk '{print $2}'); export APP_VERSION=$VER; ./gradlew --no-daemon clean generateOpenApiDocs && mkdir -p site && cp build/openapi/openapi.yaml site/openapi.yaml && cat > site/index.html <<'EOF'\n<!doctype html>\n<html lang=\"ko\">\n<head>\n  <meta charset=\"utf-8\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n  <title>DA-ITDAING API Docs</title>\n  <link rel=\"stylesheet\" href=\"https://unpkg.com/swagger-ui-dist@5/swagger-ui.css\" />\n  <style>body{margin:0;font-family:system-ui,-apple-system} .topbar{display:none}</style>\n</head>\n<body>\n  <div id=\"swagger-ui\"></div>\n  <script src=\"https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js\"></script>\n  <script>\n    fetch('./openapi.yaml')\n      .then(r => r.json())\n      .then(spec => {\n        document.title = `${(spec.info?.title||'API Docs')} - ${(spec.info?.version||'v')}`;\n        window.ui = SwaggerUIBundle({ spec, dom_id: '#swagger-ui', layout: 'BaseLayout' });\n      });\n  </script>\n</body>\n</html>\nEOF\n"],
+      "problemMatcher": [],
+      "group": "build"
+    }
+  ]
+}
