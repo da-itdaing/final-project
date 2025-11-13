@@ -23,6 +23,134 @@
     }
   ],
   "paths": {
+    "/api/sellers/popups/{popupId}": {
+      "put": {
+        "tags": [
+          "Popup (Seller)"
+        ],
+        "summary": "팝업 수정 (JSON, 이미지 URL 교체)",
+        "operationId": "updateJson",
+        "parameters": [
+          {
+            "name": "popupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePopupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePopupResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Popup (Seller)"
+        ],
+        "summary": "팝업 삭제",
+        "operationId": "delete",
+        "parameters": [
+          {
+            "name": "popupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sellers/popups/{popupId}/multipart": {
+      "put": {
+        "tags": [
+          "Popup (Seller)"
+        ],
+        "summary": "팝업 수정 (multipart: meta + images 교체)",
+        "operationId": "updateMultipart",
+        "parameters": [
+          {
+            "name": "popupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "meta"
+                ],
+                "type": "object",
+                "properties": {
+                  "meta": {
+                    "$ref": "#/components/schemas/CreatePopupRequest"
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePopupResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sellers/me/profile": {
       "get": {
         "tags": [
@@ -107,6 +235,82 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiResponseUploadImagesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sellers/popups": {
+      "post": {
+        "tags": [
+          "Popup (Seller)"
+        ],
+        "summary": "팝업 등록 (JSON, 이미지 URL 사용)",
+        "operationId": "createJson",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePopupRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePopupResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sellers/popups/multipart": {
+      "post": {
+        "tags": [
+          "Popup (Seller)"
+        ],
+        "summary": "팝업 등록 (multipart: meta + images)",
+        "operationId": "createMultipart",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "required": [
+                  "meta"
+                ],
+                "type": "object",
+                "properties": {
+                  "meta": {
+                    "$ref": "#/components/schemas/CreatePopupRequest"
+                  },
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePopupResponse"
                 }
               }
             }
@@ -421,21 +625,6 @@
           "required": true
         },
         "responses": {
-          "400": {
-            "description": "입력값 검증 실패",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 400,
-                    "code": "E001",
-                    "message": "입력값이 올바르지 않습니다"
-                  }
-                }
-              }
-            }
-          },
           "409": {
             "description": "이메일 또는 로그인ID 중복",
             "content": {
@@ -467,6 +656,21 @@
                       "profileImageUrl": "https://cdn.example.com/profiles/popup_seller.png",
                       "introduction": "팝업 운영 3년차, 굿즈 위주"
                     }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "입력값 검증 실패",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 400,
+                    "code": "E001",
+                    "message": "입력값이 올바르지 않습니다"
                   }
                 }
               }
@@ -535,21 +739,6 @@
               }
             }
           },
-          "201": {
-            "description": "회원가입 성공",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": true,
-                  "data": {
-                    "userId": 1,
-                    "email": "consumer1@example.com",
-                    "role": "CONSUMER"
-                  }
-                }
-              }
-            }
-          },
           "400": {
             "description": "입력값 검증 실패 (선호 정보 개수 초과 등)",
             "content": {
@@ -591,6 +780,21 @@
                     "status": 404,
                     "code": "E101",
                     "message": "존재하지 않는 스타일이 포함되어 있습니다"
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "회원가입 성공",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "data": {
+                    "userId": 1,
+                    "email": "consumer1@example.com",
+                    "role": "CONSUMER"
                   }
                 }
               }
@@ -667,9 +871,6 @@
           }
         },
         "responses": {
-          "204": {
-            "description": "로그아웃 성공 (본문 없음)"
-          },
           "401": {
             "description": "인증 실패 - Authorization 헤더 없음/형식 오류/토큰 무효",
             "content": {
@@ -684,6 +885,9 @@
                 }
               }
             }
+          },
+          "204": {
+            "description": "로그아웃 성공 (본문 없음)"
           }
         },
         "security": [
@@ -712,6 +916,21 @@
           "required": true
         },
         "responses": {
+          "401": {
+            "description": "인증 실패",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 401,
+                    "code": "AUTH-401",
+                    "message": "이메일 또는 비밀번호가 올바르지 않습니다"
+                  }
+                }
+              }
+            }
+          },
           "200": {
             "description": "로그인 성공",
             "content": {
@@ -725,21 +944,6 @@
                         "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZSI6IlJPTEVfQ09OU1VNRVIiLCJpc3MiOiJpdGRhaW5nLXNlcnZlciIsImlhdCI6MTczMDQxOTIwMCwiZXhwIjoxNzMwNTA1NjAwfQ.signature"
                       }
                     }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "인증 실패",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 401,
-                    "code": "AUTH-401",
-                    "message": "이메일 또는 비밀번호가 올바르지 않습니다"
                   }
                 }
               }
@@ -790,6 +994,48 @@
         }
       }
     },
+    "/api/admin/popups/{popupId}/status": {
+      "patch": {
+        "tags": [
+          "Popup (Admin)"
+        ],
+        "summary": "팝업 상태 변경 (승인/반려/숨김/종료)",
+        "operationId": "changeStatus",
+        "parameters": [
+          {
+            "name": "popupId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePopupStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users/me": {
       "get": {
         "tags": [
@@ -799,6 +1045,36 @@
         "description": "인증된 사용자의 프로필 정보를 조회합니다.\n\n이 API는 JWT 토큰 인증이 필요합니다.\nAuthorization 헤더에 \"Bearer {token}\" 형식으로 토큰을 포함해야 합니다.\n\n응답의 role 필드는 다음 값 중 하나입니다:\n- CONSUMER: 일반 소비자\n- SELLER: 팝업스토어 판매자\n- ADMIN: 시스템 관리자\n",
         "operationId": "getMyProfile_1",
         "responses": {
+          "401": {
+            "description": "인증 실패 - 토큰이 없거나 유효하지 않음",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 401,
+                    "code": "AUTH-401",
+                    "message": "인증이 필요합니다"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "사용자를 찾을 수 없음",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": false,
+                  "error": {
+                    "status": 404,
+                    "code": "COMMON-404",
+                    "message": "사용자를 찾을 수 없습니다"
+                  }
+                }
+              }
+            }
+          },
           "200": {
             "description": "조회 성공",
             "content": {
@@ -833,36 +1109,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "사용자를 찾을 수 없음",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 404,
-                    "code": "COMMON-404",
-                    "message": "사용자를 찾을 수 없습니다"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "인증 실패 - 토큰이 없거나 유효하지 않음",
-            "content": {
-              "application/json": {
-                "example": {
-                  "success": false,
-                  "error": {
-                    "status": 401,
-                    "code": "AUTH-401",
-                    "message": "인증이 필요합니다"
-                  }
-                }
-              }
-            }
           }
         },
         "security": [
@@ -870,6 +1116,49 @@
             "bearerAuth": []
           }
         ]
+      }
+    },
+    "/api/sellers/popups/me": {
+      "get": {
+        "tags": [
+          "Popup (Seller)"
+        ],
+        "summary": "내 팝업 목록",
+        "operationId": "listMine",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePopupListResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/master/styles": {
@@ -1088,6 +1377,264 @@
   },
   "components": {
     "schemas": {
+      "CreatePopupRequest": {
+        "required": [
+          "endDate",
+          "name",
+          "place",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string"
+          },
+          "place": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "zoneId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "zoneCreateSpec": {
+            "$ref": "#/components/schemas/ZoneCreateSpec"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "intro": {
+            "maxLength": 2000,
+            "minLength": 0,
+            "type": "string"
+          },
+          "categoryIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "targetCategoryIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "styleIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "featureIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "hashtags": {
+            "maxItems": 20,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "maxLength": 50,
+              "minLength": 0,
+              "type": "string"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "maxLength": 500,
+              "minLength": 0,
+              "type": "string"
+            }
+          },
+          "uploadedImages": {
+            "maxItems": 20,
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UploadedImageRef"
+            }
+          }
+        }
+      },
+      "UploadedImageRef": {
+        "required": [
+          "key",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "thumbnail": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ZoneCreateSpec": {
+        "required": [
+          "detailedAddress",
+          "label",
+          "lat",
+          "lng",
+          "zoneAreaId"
+        ],
+        "type": "object",
+        "properties": {
+          "zoneAreaId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "label": {
+            "type": "string"
+          },
+          "detailedAddress": {
+            "type": "string"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxCapacity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ApiResponsePopupResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PopupResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "ErrorBody": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "PopupResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "ownerId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "regionId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "zoneId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "place": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "intro": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "HIDDEN",
+              "ENDED"
+            ]
+          },
+          "viewCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "rejectReason": {
+            "type": "string"
+          },
+          "hashtags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          }
+        }
+      },
       "SellerProfileRequest": {
         "type": "object",
         "properties": {
@@ -1132,21 +1679,6 @@
           },
           "error": {
             "$ref": "#/components/schemas/ErrorBody"
-          }
-        }
-      },
-      "ErrorBody": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "code": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
           }
         }
       },
@@ -1896,6 +2428,69 @@
           },
           "error": {
             "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "UpdatePopupStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PENDING",
+              "APPROVED",
+              "REJECTED",
+              "HIDDEN",
+              "ENDED"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiResponsePopupListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PopupListResponse"
+          },
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        }
+      },
+      "PopupListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PopupResponse"
+            }
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
