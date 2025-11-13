@@ -88,3 +88,9 @@ uploads/
 tmp/
 temp/
 var/
+
+# local uploads
+var/
+uploads/
+*.log
+

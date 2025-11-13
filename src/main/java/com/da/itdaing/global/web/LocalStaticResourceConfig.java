@@ -17,11 +17,12 @@ public class LocalStaticResourceConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String baseDir = props.getLocal().getBaseDir();   // e.g. uploads
-        String root = props.getLocal().getRoot();         // e.g. ./var
-        String location = Paths.get(root).toUri().toString(); // file:/.../ 형태
+        var local = props.getLocal(); // root=./var, baseDir=uploads
+        String handler = "/" + local.getBaseDir() + "/**";                 // "/uploads/**"
+        String location = "file:" + local.getRoot() + "/" + local.getBaseDir() + "/"; // "file:./var/uploads/"
 
-        registry.addResourceHandler("/" + baseDir + "/**")
-            .addResourceLocations(location);
+        registry.addResourceHandler(handler)
+            .addResourceLocations(location)
+            .setCachePeriod(31536000);
     }
 }

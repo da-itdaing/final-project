@@ -1,10 +1,7 @@
 package com.da.itdaing.domain.popup.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -21,6 +18,8 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class PopupImage {
 
     @Id
@@ -30,6 +29,9 @@ public class PopupImage {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "popup_id", nullable = false)
     private Popup popup;
+
+    @Column(name = "image_key", length = 500)   // nullable 허용 (과거 URL-only 데이터 호환)
+    private String imageKey;
 
     @Column(name = "image_url", length = 500, nullable = false)
     private String imageUrl;

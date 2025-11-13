@@ -1,6 +1,7 @@
 // FILE: src/main/java/com/da/itdaing/global/jpa/BaseTimeEntity.java
 package com.da.itdaing.global.jpa;
 
+import com.querydsl.core.annotations.QuerySupertype;
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -13,6 +14,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class) // ★ 추가
+@QuerySupertype
 public abstract class BaseTimeEntity {
 
     @CreatedDate
